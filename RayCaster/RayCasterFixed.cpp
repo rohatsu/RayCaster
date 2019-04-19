@@ -16,20 +16,22 @@ uint16_t RayCasterFixed::Mul(uint8_t v, uint16_t f)
 	return hm + (lm >> 8);
 }
 
-uint8_t RayCasterFixed::Height(uint16_t d)
+void RayCasterFixed::Height(uint16_t d, uint8_t* h, uint16_t *ts)
 {
 	if (d >= 256)
 	{
 		uint16_t ds = d >> 3;
 		if (ds >= 256)
 		{
-			return _fard[255] - 1;
+			ds = 255;
 		}
-		return _fard[ds];
+		*h = _fard[ds];
+		*ts = _fars[ds];
 	}
 	else
 	{
-		return _neard[d];
+		*h = _neard[d];
+		*ts = _nears[d];
 	}
 }
 
@@ -83,7 +85,7 @@ inline bool RayCasterFixed::IsWall(uint8_t bx, uint8_t by, uint8_t sx, uint8_t s
 	return _map[bx + (by << MAP_XS)] == 1;
 }
 
-void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t *dx, int16_t *dy)
+void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t *dx, int16_t *dy, uint8_t* textureNo, uint8_t* textureX)
 {
 	register int8_t tileStepX;
 	register int8_t tileStepY;
@@ -202,11 +204,15 @@ void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t *d
 hithoriz:
 	hx = xIntercept + (tileStepX == 1 ? 256 : 0);
 	hy = (y << 8) + (tileStepY == -1 ? 256 : 0);
+	*textureNo = 0;
+	*textureX = xIntercept & 0xFF;
 	goto wallhit;
 
 hitvert:
 	hx = (x << 8) + (tileStepX == -1 ? 256 : 0);
 	hy = yIntercept + (tileStepY == 1 ? 256 : 0);
+	*textureNo = 1;
+	*textureX = yIntercept & 0xFF;
 	goto wallhit;
 
 wallhit:
@@ -216,7 +222,6 @@ wallhit:
 
 // (px, py) is 8 box coordinate bits, 8 inside coordinate bits
 // (pa) is full circle as 1024
-//void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
 	uint16_t _ra = static_cast<uint16_t>(_pa + _da[screenX]);
@@ -237,7 +242,7 @@ void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureN
 
 	int16_t dx;
 	int16_t dy;
-	Distance(_px, _py, _ra, &dx, &dy);
+	Distance(_px, _py, _ra, &dx, &dy, textureNo, textureX);
 
 	// d = dy * cos(pa) + dx * sin(pa)
 	int16_t d = 0;
@@ -290,11 +295,14 @@ void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureN
 	}
 	if (d >= MIN_DIST)
 	{
-		*screenY = Height((d - MIN_DIST) >> 2);
+		*textureY = 0;
+		Height((d - MIN_DIST) >> 2, screenY, textureStep);
 	}
 	else
 	{
 		*screenY = SCREEN_HEIGHT >> 1;
+		*textureY = _shorto[d];
+		*textureStep = _shorts[d];
 	}
 }
 
@@ -310,6 +318,7 @@ void RayCasterFixed::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 RayCasterFixed::RayCasterFixed(uint8_t *map) : RayCaster()
 {
 	_map = map;
+	Precalculate();
 }
 
 void RayCasterFixed::Precalculate()
@@ -340,6 +349,26 @@ void RayCasterFixed::Precalculate()
 	{
 	_neard[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 2) + MIN_DIST) >> 2)) >> 2);
 	_fard[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 5) + MIN_DIST) >> 5)) >> 5);
+	}
+	for (int i = 0; i < 256; i++)
+	{
+		auto txn = ((INV_FACTOR_INT / (((i * 4.0f) + MIN_DIST) / 4.0f)) / 4.0f) * 2.0f;
+		if (txn != 0)
+		{
+			_nears[i] = (256 / txn) * 256;
+		}
+		auto txf = ((INV_FACTOR_INT / (((i * 32.0f) + MIN_DIST) / 32.0f)) / 32.0f) * 2.0f;
+		if (txf != 0)
+		{
+			_fars[i] = (256 / txf) * 256;
+		}
+	}
+	for (int i = 1; i < 256; i++)
+	{
+		auto txs = ((INV_FACTOR_INT / (float)(i / 2.0f)));
+		auto ino = (txs - SCREEN_HEIGHT) / 2;
+		_shorts[i] = (256 / txs) * 256;
+		_shorto[i] = ino * (256 / txs) * 256;
 	}*/
 }
 
