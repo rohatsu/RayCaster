@@ -15,9 +15,7 @@ private:
     float _playerX;
     float _playerY;
     float _playerA;
-    float _hitOffset;
-    bool  _hitDirection;
 
-    float Distance(float px, float py, float ra);
-    bool  IsWall(float rx, float ry, float ra);
+    float Distance(float playerX, float playerY, float rayA, float* hitOffset, int* hitDirection);
+    bool  IsWall(float rayX, float rayY, float rayA);
 };

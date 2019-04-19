@@ -5,116 +5,107 @@
 #include "RayCasterFloat.h"
 #include <math.h>
 
-bool RayCasterFloat::IsWall(float rx, float ry, float ra)
+bool RayCasterFloat::IsWall(float rayX, float rayY, float rayA)
 {
-    float x  = 0;
-    float y  = 0;
-    float sx = modff(rx, &x);
-    float sy = modff(ry, &y);
+    float mapX    = 0;
+    float mapY    = 0;
+    float offsetX = modff(rayX, &mapX);
+    float offsetY = modff(rayY, &mapY);
+    int   tileX   = static_cast<int>(mapX);
+    int   tileY   = static_cast<int>(mapY);
 
-    int ibx = static_cast<int>(x);
-    int iby = static_cast<int>(y);
-
-    if(ibx < 0 || iby < 0 || ibx >= MAP_X - 1 || iby >= MAP_Y - 1)
+    if(tileX < 0 || tileY < 0 || tileX >= MAP_X - 1 || tileY >= MAP_Y - 1)
     {
         return true;
     }
-    return g_map[+(ibx >> 3) + (iby << (MAP_XS - 3))] & (1 << (8 - (ibx & 0x7)));
+    return g_map[(tileX >> 3) + (tileY << (MAP_XS - 3))] & (1 << (8 - (tileX & 0x7)));
 }
 
-float RayCasterFloat::Distance(float px, float py, float ra)
+float RayCasterFloat::Distance(float playerX, float playerY, float rayA, float* hitOffset, int* hitDirection)
 {
-    float rx, ry;
-
-    rx = px;
-    ry = py;
-
-    while(ra < 0)
+    while(rayA < 0)
     {
-        ra += 2.0f * M_PI;
+        rayA += 2.0f * M_PI;
     }
-    while(ra >= 2.0f * M_PI)
+    while(rayA >= 2.0f * M_PI)
     {
-        ra -= 2.0f * M_PI;
+        rayA -= 2.0f * M_PI;
     }
 
-    // xStep/yStep=tan(a)
-
-    int tileStepX = 1;
-    int tileStepY = 1;
-    if(ra > M_PI)
+    int   tileStepX = 1;
+    int   tileStepY = 1;
+    float tileX     = 0;
+    float tileY     = 0;
+    if(rayA > M_PI)
     {
         tileStepX = -1;
     }
-    if(ra > M_PI_2 && ra < 3 * M_PI_2)
+    if(rayA > M_PI_2 && rayA < 3 * M_PI_2)
     {
         tileStepY = -1;
     }
 
-    //float yIntercept = ry + yStep; // next intercept with vertical line
-    //float xIntercept = rx + xStep; // next intercept with horizontal line
+    float rayX    = playerX;
+    float rayY    = playerY;
+    float offsetX = modff(rayX, &tileX);
+    float offsetY = modff(rayY, &tileY);
 
-    float x  = 0;
-    float y  = 0;
-    float sx = modff(rx, &x);
-    float sy = modff(ry, &y);
-
-    float sdx, sdy;
-    if(ra <= M_PI_2)
+    float startDeltaX, startDeltaY;
+    if(rayA <= M_PI_2)
     {
-        sdx = (1 - sy) * tan(ra);
-        sdy = (1 - sx) / tan(ra);
+        startDeltaX = (1 - offsetY) * tan(rayA);
+        startDeltaY = (1 - offsetX) / tan(rayA);
     }
-    else if(ra <= M_PI)
+    else if(rayA <= M_PI)
     {
-        if(sy == 0)
+        if(offsetY == 0)
         {
-            sdx = (1) * fabs(tan(ra));
+            startDeltaX = (1) * fabs(tan(rayA));
         }
         else
         {
-            sdx = (sy)*fabs(tan(ra));
+            startDeltaX = (offsetY)*fabs(tan(rayA));
         }
-        sdy = -(1 - sx) / fabs(tan(ra));
+        startDeltaY = -(1 - offsetX) / fabs(tan(rayA));
     }
-    else if(ra < 3 * M_PI_2)
+    else if(rayA < 3 * M_PI_2)
     {
-        if(sy == 0)
+        if(offsetY == 0)
         {
-            sdx = -(1) * fabs(tan(ra));
+            startDeltaX = -(1) * fabs(tan(rayA));
         }
         else
         {
-            sdx = -(sy)*fabs(tan(ra));
+            startDeltaX = -(offsetY)*fabs(tan(rayA));
         }
-        if(sx == 0)
+        if(offsetX == 0)
         {
-            sdy = -(1) / fabs(tan(ra));
+            startDeltaY = -(1) / fabs(tan(rayA));
         }
         else
         {
-            sdy = -(sx) / fabs(tan(ra));
+            startDeltaY = -(offsetX) / fabs(tan(rayA));
         }
     }
     else
     {
-        sdx = -(1 - sy) * fabs(tan(ra));
-        if(sx == 0)
+        startDeltaX = -(1 - offsetY) * fabs(tan(rayA));
+        if(offsetX == 0)
         {
-            sdy = (1) / fabs(tan(ra));
+            startDeltaY = (1) / fabs(tan(rayA));
         }
         else
         {
-            sdy = (sx) / fabs(tan(ra));
+            startDeltaY = (offsetX) / fabs(tan(rayA));
         }
     }
 
-    float xIntercept    = rx + sdx;
-    float yIntercept    = ry + sdy;
-    float xStep         = fabs(tan(ra)) * tileStepX;
-    float yStep         = fabs(1 / tan(ra)) * tileStepY;
-    bool  hitVert       = false;
-    bool  hitHoriz      = false;
+    float interceptX    = rayX + startDeltaX;
+    float interceptY    = rayY + startDeltaY;
+    float stepX         = fabs(tan(rayA)) * tileStepX;
+    float stepY         = fabs(1 / tan(rayA)) * tileStepY;
+    bool  verticalHit   = false;
+    bool  horizontalHit = false;
     bool  somethingDone = false;
     int   isTop         = 0;
     int   isRight       = 0;
@@ -122,70 +113,72 @@ float RayCasterFloat::Distance(float px, float py, float ra)
     do
     {
         somethingDone = false;
-        while(((tileStepY == 1 && (yIntercept <= y + 1)) || (tileStepY == -1 && (yIntercept >= y))))
+        while(((tileStepY == 1 && (interceptY <= tileY + 1)) || (tileStepY == -1 && (interceptY >= tileY))))
         {
             somethingDone = true;
-            x += tileStepX;
-            if(IsWall(x, yIntercept, ra))
+            tileX += tileStepX;
+            if(IsWall(tileX, interceptY, rayA))
             {
-                hitVert       = true;
-                rx            = x + (tileStepX == -1 ? 1 : 0);
-                ry            = yIntercept;
-                _hitOffset    = yIntercept;
-                _hitDirection = true;
+                verticalHit   = true;
+                rayX          = tileX + (tileStepX == -1 ? 1 : 0);
+                rayY          = interceptY;
+                *hitOffset    = interceptY;
+                *hitDirection = true;
                 break;
             }
-            yIntercept += yStep;
+            interceptY += stepY;
         }
-        while(!hitVert && ((tileStepX == 1 && (xIntercept <= x + 1)) || (tileStepX == -1 && (xIntercept >= x))))
+        while(!verticalHit && ((tileStepX == 1 && (interceptX <= tileX + 1)) || (tileStepX == -1 && (interceptX >= tileX))))
         {
             somethingDone = true;
-            y += tileStepY;
-            if(IsWall(xIntercept, y, ra))
+            tileY += tileStepY;
+            if(IsWall(interceptX, tileY, rayA))
             {
-                hitHoriz      = true;
-                rx            = xIntercept;
-                _hitOffset    = xIntercept;
-                _hitDirection = 0;
-                ry            = y + (tileStepY == -1 ? 1 : 0);
+                horizontalHit = true;
+                rayX          = interceptX;
+                *hitOffset    = interceptX;
+                *hitDirection = 0;
+                rayY          = tileY + (tileStepY == -1 ? 1 : 0);
                 break;
             }
-            xIntercept += xStep;
+            interceptX += stepX;
         }
-    } while((!hitHoriz && !hitVert) && somethingDone);
+    } while((!horizontalHit && !verticalHit) && somethingDone);
 
     if(!somethingDone)
     {
         return 0;
     }
 
-    float dx = rx - px;
-    float dy = ry - py;
-    return sqrt(dx * dx + dy * dy);
+    float deltaX = rayX - playerX;
+    float deltaY = rayY - playerY;
+    return sqrt(deltaX * deltaX + deltaY * deltaY);
 }
 
 void RayCasterFloat::Trace(
     uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-    float da = ((int16_t)screenX - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
-    float d2 = Distance(_playerX, _playerY, _playerA + da);
-    float ad = d2 * cos(da);
+    float deltaAngle = ((int16_t)screenX - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
+    float hitOffset;
+    int   hitDirection;
+    float lineDistance = Distance(_playerX, _playerY, _playerA + deltaAngle, &hitOffset, &hitDirection);
+    float distance     = lineDistance * cos(deltaAngle);
     float dum;
-    *textureX    = (uint8_t)(256.0f * modff(_hitOffset, &dum));
-    *textureNo   = _hitDirection;
+    *textureX    = (uint8_t)(256.0f * modff(hitOffset, &dum));
+    *textureNo   = hitDirection;
     *textureY    = 0;
     *textureStep = 0;
-    if(ad > 0)
+    if(distance > 0)
     {
-        *screenY = INV_FACTOR / ad;
+        *screenY = INV_FACTOR / distance;
         auto txs = (*screenY * 2.0f);
         if(txs != 0)
         {
             *textureStep = (256 / txs) * 256;
             if(txs > SCREEN_HEIGHT)
             {
-                auto ino  = (txs - SCREEN_HEIGHT) / 2;
-                *textureY = ino * (256 / txs) * 256;
+                auto wallHeight = (txs - SCREEN_HEIGHT) / 2;
+                *textureY       = wallHeight * (256 / txs) * 256;
             }
         }
     }
