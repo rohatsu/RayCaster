@@ -25,16 +25,16 @@ void RayCasterFixed::Height(uint16_t d, uint8_t* h, uint16_t *ts)
 		uint16_t ds = d >> 3;
 		if (ds >= 256)
 		{
-			*h = LOOKUP(_fard, 255) - 1;
-			*ts = LOOKUP(_fars, 255);
+			*h = LOOKUP8(_fard, 255) - 1;
+			*ts = LOOKUP8(_fars, 255);
 		}
-		*h = LOOKUP(_fard, ds);
-		*ts = LOOKUP(_fars, ds);
+		*h = LOOKUP8(_fard, ds);
+		*ts = LOOKUP8(_fars, ds);
 	}
 	else
 	{
-		*h = LOOKUP(_neard, d);
-		*ts = LOOKUP(_nears, d);
+		*h = LOOKUP8(_neard, d);
+		*ts = LOOKUP8(_nears, d);
 	}
 }
 
@@ -69,18 +69,18 @@ int16_t RayCasterFixed::MulTan(uint8_t v, uint8_t i, uint8_t qtr, uint8_t a, con
 	}
 	if (qtr % 2 == 1)
 	{
-		return -Mul(iv, LOOKUP(fun, INVERT(a)));
+		return -Mul(iv, LOOKUP16(fun, INVERT(a)));
 	}
-	return Mul(iv, LOOKUP(fun, a));
+	return Mul(iv, LOOKUP16(fun, a));
 }
 
 int16_t RayCasterFixed::AbsTan(uint8_t qtr, uint8_t a, const uint16_t* fun)
 {
 	if (qtr % 2 == 1)
 	{
-		return LOOKUP(fun, INVERT(a));
+		return LOOKUP16(fun, INVERT(a));
 	}
-	return LOOKUP(fun, a);
+	return LOOKUP16(fun, a);
 }
 
 inline bool RayCasterFixed::IsWall(uint8_t bx, uint8_t by, uint8_t sx, uint8_t sy)
@@ -89,7 +89,7 @@ inline bool RayCasterFixed::IsWall(uint8_t bx, uint8_t by, uint8_t sx, uint8_t s
 	{
 		return true;
 	}
-	return LOOKUP(_map, (bx >> 3) + (by << (MAP_XS - 3))) & (1 << (8 - (bx & 0x7)));
+	return LOOKUP8(_map, (bx >> 3) + (by << (MAP_XS - 3))) & (1 << (8 - (bx & 0x7)));
 }
 
 void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t *dx, int16_t *dy, uint8_t* textureNo, uint8_t* textureX)
@@ -231,7 +231,7 @@ wallhit:
 // (pa) is full circle as 1024
 void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-	uint16_t _ra = static_cast<uint16_t>(_pa + LOOKUP(_da, screenX));
+	uint16_t _ra = static_cast<uint16_t>(_pa + LOOKUP16(_da, screenX));
 
 	// neutralize artefacts around edges	
 	switch (_ra % 256)
@@ -264,16 +264,16 @@ void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureN
 	else switch (_qtr)
 	{
 	case 0:
-		d += MulS(LOOKUP(_cos, _qa), dy);
+		d += MulS(LOOKUP8(_cos, _qa), dy);
 		break;
 	case 1:
-		d -= MulS(LOOKUP(_cos, INVERT(_qa)), dy);
+		d -= MulS(LOOKUP8(_cos, INVERT(_qa)), dy);
 		break;
 	case 2:
-		d -= MulS(LOOKUP(_cos, _qa), dy);
+		d -= MulS(LOOKUP8(_cos, _qa), dy);
 		break;
 	case 3:
-		d += MulS(LOOKUP(_cos, INVERT(_qa)), dy);
+		d += MulS(LOOKUP8(_cos, INVERT(_qa)), dy);
 		break;
 	}
 
@@ -288,16 +288,16 @@ void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureN
 	else switch (_qtr)
 	{
 	case 0:
-		d += MulS(LOOKUP(_sin, _qa), dx);
+		d += MulS(LOOKUP8(_sin, _qa), dx);
 		break;
 	case 1:
-		d += MulS(LOOKUP(_sin, INVERT(_qa)), dx);
+		d += MulS(LOOKUP8(_sin, INVERT(_qa)), dx);
 		break;
 	case 2:
-		d -= MulS(LOOKUP(_sin, _qa), dx);
+		d -= MulS(LOOKUP8(_sin, _qa), dx);
 		break;
 	case 3:
-		d -= MulS(LOOKUP(_sin, INVERT(_qa)), dx);
+		d -= MulS(LOOKUP8(_sin, INVERT(_qa)), dx);
 		break;
 	}
 	if (d >= MIN_DIST)
@@ -308,8 +308,8 @@ void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureN
 	else
 	{
 		*screenY = SCREEN_HEIGHT >> 1;
-		*textureY = LOOKUP(_shorto, d);
-		*textureStep = LOOKUP(_shorts, d);
+		*textureY = LOOKUP16(_shorto, d);
+		*textureStep = LOOKUP16(_shorts, d);
 	}
 }
 

@@ -2,12 +2,16 @@
 
 #include <stdint.h>
 
-#ifdef ARDUINO
+#ifdef ARDUINO_AVR_UNO
 
+#include <Arduino.h>
+
+#define TABLES_160
 #define SCREEN_WIDTH (uint16_t)160
 #define SCREEN_HEIGHT (uint16_t)128
-#define SCREEN_SCALE 2
 #define LOOKUP_TBL PROGMEM
+#define LOOKUP8(tbl, offset) pgm_read_byte_near(tbl + offset)
+#define LOOKUP16(tbl, offset) pgm_read_word_near(tbl + offset)
 
 #else
 
@@ -18,7 +22,8 @@
 #define FOV (double)(M_PI / 2)
 #define INV_FACTOR (float)(SCREEN_WIDTH * 100.0f / 320.0f)
 #define LOOKUP_TBL
-#define LOOKUP(tbl, offset) tbl[offset]
+#define LOOKUP8(tbl, offset) tbl[offset]
+#define LOOKUP16(tbl, offset) tbl[offset]
 
 #endif
 
