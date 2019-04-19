@@ -25,8 +25,8 @@ on the right (320x256 resolution).
 
 ![screenshot](screenshot2.png)
 
-The algorithm runs at ~16fps on an Arduino Uno with
-a connected ST7735 TFT display (160x128). Here's a [video](https://youtu.be/kYEKC6_PQQw).
+The algorithm runs at ~20fps on an Arduino Uno with
+a connected ST7735R display (160x128). Here's a [video](https://youtu.be/kYEKC6_PQQw).
 
 ### To Do
 
@@ -48,3 +48,6 @@ you can use arrow keys to move around.
 For Arduino, use the Atmel Studio (AVR) solution and an Arduino Uno. You will need to connect
 an ST7735R TFT (160x128) or adjust code for your display. Thanks to Jukka Jylänki
 for the [fast TFT library](https://github.com/juj/ST7735R).
+
+You can also try runnning pre-built binaries from [Binaries](Binaries) directory
+(.exe for Windows and .hex for AVRdude).
