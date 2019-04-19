@@ -30,17 +30,10 @@
 
 class RayCaster
 {
-protected:
-	bool _log = false;
-
 public:
-	virtual void Trace(uint16_t px, uint16_t py, int16_t pa, uint8_t * wh) = 0;
+	virtual void Start(uint16_t px, uint16_t py, int16_t pa) = 0;
 
-	void Start(uint16_t rx, uint16_t ry, int16_t ra);
-
-	void Step(uint16_t rx, uint16_t ry);
-
-	void Finish(uint16_t rx, uint16_t ry, int16_t dx, int16_t dy);
+	virtual void Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst) = 0;
 
 	RayCaster();
 

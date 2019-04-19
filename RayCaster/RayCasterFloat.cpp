@@ -125,8 +125,6 @@ void RayCasterFloat::HitLocation1(float sx, float sy, float a, float *hx, float 
 
 float RayCasterFloat::Distance(float px, float py, float ra)
 {
-	Start(static_cast<uint16_t>(px * 256), static_cast<uint16_t>(py * 256), static_cast<int16_t>(ra * 1024 / (2.0 * M_PI)));
-
 	float rx, ry;
 
 	rx = px;
@@ -162,9 +160,6 @@ float RayCasterFloat::Distance(float px, float py, float ra)
 
 	float dx = rx - px;
 	float dy = ry - py;
-
-	Finish(static_cast<uint16_t>(rx * 256), static_cast<uint16_t>(ry * 256), static_cast<int16_t>(dx * 256), static_cast<int16_t>(dy * 256));
-
 	float d = sqrt(dx * dx + dy * dy);
 
 	return d;
@@ -180,31 +175,13 @@ bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 	int ibx = static_cast<int>(x);
 	int iby = static_cast<int>(y);
 
-	Step(static_cast<uint16_t>(rx * 256), static_cast<uint16_t>(ry * 256));
-
 	if (ibx <= 1 || iby <= 1 || ibx >= MAP_X - 1 || iby >= MAP_Y - 1)
 	{
 		return true;
 	}
 
 	if (_map[ibx + MAP_X * iby] == 0)
-	{/*
-		if (sx == 0)
-		{
-			*isRight = 1;
-			ibx--;
-		}
-		if (sy == 0)
-		{
-			*isTop = 1;
-			iby--;
-		}
-
-		if (ibx <= 1 || iby <= 1 || ibx >= MAP_X - 1 || iby >= MAP_Y - 1)
-		{
-			return true;
-		}
-		*/
+	{
 		return _map[ibx + MAP_X * iby] == 1;
 	}
 	return true;
@@ -212,8 +189,6 @@ bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 
 float RayCasterFloat::Distance2(float px, float py, float ra)
 {
-	Start(static_cast<uint16_t>(px * 256), static_cast<uint16_t>(py * 256), static_cast<int16_t>(ra * 1024 / (2.0 * M_PI)));
-
 	float rx, ry;
 
 	rx = px;
@@ -263,7 +238,7 @@ float RayCasterFloat::Distance2(float px, float py, float ra)
 		}
 		else
 		{
-			sdx = (sy) * fabs(tan(ra));
+			sdx = (sy)* fabs(tan(ra));
 		}
 		sdy = -(1 - sx) / fabs(tan(ra));
 	}
@@ -361,42 +336,31 @@ float RayCasterFloat::Distance2(float px, float py, float ra)
 
 	float dx = rx - px;
 	float dy = ry - py;
-
-	Finish(static_cast<uint16_t>(rx * 256), static_cast<uint16_t>(ry * 256), static_cast<int16_t>(dx * 256), static_cast<int16_t>(dy * 256));
-
 	float d = sqrt(dx * dx + dy * dy);
 
 	return d;
 }
 
-void RayCasterFloat::Viewport(float px, float py, float pa, float *wd)
+void RayCasterFloat::Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst)
 {
-	pa *= 2.0f * M_PI;
-	px *= 4.0f;
-	py *= 4.0f;
-	for (int c = 0; c < SCREEN_WIDTH; c++)
+	float da = ((int16_t)x - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
+	float d2 = Distance2(_px, _py, _pa + da);
+	float ad = d2 * cos(da);
+	if (ad > 0)
 	{
-		float da = (c - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
-		float d2 = Distance2(px, py, pa + da);
-		float ad = d2 * cos(da);
-		if (ad > 0)
-		{
-			wd[c] = INV_FACTOR / ad;
-		}
-		else
-		{
-			wd[c] = 0;
-		}
+		*sso = INV_FACTOR / ad;
+	}
+	else
+	{
+		*sso = 0;
 	}
 }
 
-void RayCasterFloat::Trace(uint16_t px, uint16_t py, int16_t pa, uint8_t * wh)
+void RayCasterFloat::Start(uint16_t px, uint16_t py, int16_t pa)
 {
-	Viewport(px / 1024.0f, py / 1024.0f, pa / 1024.0f, _wd);
-	for (int x = 0; x < SCREEN_WIDTH; x++)
-	{
-		wh[x] = static_cast<unsigned char>(_wd[x]);
-	}
+	_px = (px / 1024.0f) * 4.0f;
+	_py = (py / 1024.0f) * 4.0f;
+	_pa = (pa / 1024.0f) * 2.0f * M_PI;
 }
 
 RayCasterFloat::RayCasterFloat(uint8_t *map) : RayCaster()

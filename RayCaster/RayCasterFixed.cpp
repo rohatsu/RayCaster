@@ -80,19 +80,11 @@ int16_t RayCasterFixed::AbsTan(uint8_t qtr, uint8_t a, uint16_t* fun)
 
 inline bool RayCasterFixed::IsWall(uint8_t bx, uint8_t by, uint8_t sx, uint8_t sy)
 {
-#ifdef _DEBUG
-	Step((bx << 8) + sx, (by << 8) + sy);
-#endif
-
 	return _map[bx + (by << MAP_XS)] == 1;
 }
 
 void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t *dx, int16_t *dy)
 {
-#ifdef _DEBUG
-	Start(rx, ry, _ra);
-#endif
-
 	register int8_t tileStepX;
 	register int8_t tileStepY;
 	register int16_t xIntercept = rx;
@@ -220,110 +212,104 @@ hitvert:
 wallhit:
 	*dx = hx - rx;
 	*dy = hy - ry;
-
-#ifdef _DEBUG
-	Finish(rx, ry, *dx, *dy);
-#endif
 }
 
 // (px, py) is 8 box coordinate bits, 8 inside coordinate bits
 // (pa) is full circle as 1024
-void RayCasterFixed::Viewport(uint16_t _sx, uint16_t _sy, int16_t pa, uint8_t *wd)
+//void RayCasterFixed::Viewport(uint16_t _sx, uint16_t _sy, int16_t pa, uint8_t *wd)
+void RayCasterFixed::Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst)
 {
-	uint8_t qtr = pa >> 8;
-	uint8_t qa = pa % 256;
+	uint16_t _ra = static_cast<uint16_t>(_pa + _da[x]);
 
-	for (int c = 0; c < SCREEN_WIDTH; c++)
+	// neutralize artefacts around edges	
+	switch (_ra % 256)
 	{
-		uint16_t _ra = static_cast<uint16_t>(pa + _da[c]);
+	case 1:
+	case 254:
+		_ra--;
+		break;
+	case 2:
+	case 255:
+		_ra++;
+		break;
+	}
+	_ra %= 1024;
 
-		// neutralize artefacts around edges	
-		switch (_ra % 256)
-		{
-		case 1:
-		case 254:
-			_ra--;
-			break;
-		case 2:
-		case 255:
-			_ra++;
-			break;
-		}
-		_ra %= 1024;
-		
-		int16_t dx;
-		int16_t dy;
-		Distance(_sx, _sy, _ra, &dx, &dy);
+	int16_t dx;
+	int16_t dy;
+	Distance(_px, _py, _ra, &dx, &dy);
 
-		// d = dy * cos(pa) + dx * sin(pa)
-		int16_t d = 0;
-		if (pa == 0)
-		{
-			d += dy;
-		}
-		else if (pa == 512)
-		{
-			d -= dy;
-		}
-		else switch (qtr)
-		{
-		case 0:
-			d += MulS(_cos[qa], dy);
-			break;
-		case 1:
-			d -= MulS(_cos[INVERT(qa)], dy);
-			break;
-		case 2:
-			d -= MulS(_cos[qa], dy);
-			break;
-		case 3:
-			d += MulS(_cos[INVERT(qa)], dy);
-			break;
-		}
+	// d = dy * cos(pa) + dx * sin(pa)
+	int16_t d = 0;
+	if (_pa == 0)
+	{
+		d += dy;
+	}
+	else if (_pa == 512)
+	{
+		d -= dy;
+	}
+	else switch (_qtr)
+	{
+	case 0:
+		d += MulS(_cos[_qa], dy);
+		break;
+	case 1:
+		d -= MulS(_cos[INVERT(_qa)], dy);
+		break;
+	case 2:
+		d -= MulS(_cos[_qa], dy);
+		break;
+	case 3:
+		d += MulS(_cos[INVERT(_qa)], dy);
+		break;
+	}
 
-		if (pa == 256)
-		{
-			d += dx;
-		}
-		else if (pa == 768)
-		{
-			d -= dx;
-		}
-		else switch (qtr)
-		{
-		case 0:
-			d += MulS(_sin[qa], dx);
-			break;
-		case 1:
-			d += MulS(_sin[INVERT(qa)], dx);
-			break;
-		case 2:
-			d -= MulS(_sin[qa], dx);
-			break;
-		case 3:
-			d -= MulS(_sin[INVERT(qa)], dx);
-			break;
-		}
-		if (d >= MIN_DIST)
-		{
-			wd[c] = Height((d - MIN_DIST) >> 2);
-		}
-		else
-		{
-			wd[c] = SCREEN_HEIGHT >> 1;
-		}
+	if (_pa == 256)
+	{
+		d += dx;
+	}
+	else if (_pa == 768)
+	{
+		d -= dx;
+	}
+	else switch (_qtr)
+	{
+	case 0:
+		d += MulS(_sin[_qa], dx);
+		break;
+	case 1:
+		d += MulS(_sin[INVERT(_qa)], dx);
+		break;
+	case 2:
+		d -= MulS(_sin[_qa], dx);
+		break;
+	case 3:
+		d -= MulS(_sin[INVERT(_qa)], dx);
+		break;
+	}
+	if (d >= MIN_DIST)
+	{
+		*sso = Height((d - MIN_DIST) >> 2);
+	}
+	else
+	{
+		*sso = SCREEN_HEIGHT >> 1;
 	}
 }
 
-void RayCasterFixed::Trace(uint16_t px, uint16_t py, int16_t pa, uint8_t * wh)
+void RayCasterFixed::Start(uint16_t px, uint16_t py, int16_t pa)
 {
-	Viewport(px, py, pa, wh);
+	_qtr = pa >> 8;
+	_qa = pa % 256;
+	_px = px;
+	_py = py;
+	_pa = pa;
 }
 
 RayCasterFixed::RayCasterFixed(uint8_t *map) : RayCaster()
 {
 	_map = map;
-	//_log = true;
 }
 
 void RayCasterFixed::Precalculate()

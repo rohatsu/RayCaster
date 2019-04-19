@@ -5,7 +5,17 @@
 
 void Renderer::TraceFrame(Game *g, unsigned char * fb)
 {
-	_rc->Trace(static_cast<uint16_t>(g->px * 256.0f), static_cast<uint16_t>(g->py * 256.0f), static_cast<int16_t>(g->pa / (2.0f * M_PI) * 1024.0f), _wh);
+	_rc->Start(static_cast<uint16_t>(g->px * 256.0f), static_cast<uint16_t>(g->py * 256.0f), static_cast<int16_t>(g->pa / (2.0f * M_PI) * 1024.0f));
+
+	for (int x = 0; x < SCREEN_WIDTH; x++)
+	{
+		uint16_t tst;
+		uint8_t sso;
+		uint8_t tso;
+
+		_rc->Trace(x, &sso, &tso, &tst);
+		_wh[x] = sso;
+	}
 }
 
 void Renderer::RenderFrame(Game *g, unsigned char * fb)
