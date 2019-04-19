@@ -5,11 +5,11 @@
 
 class Renderer
 {
-	RayCaster* _rc;
-	Game*	   _g;
+    RayCaster* _rc;
+    Game*      _g;
 
 public:
-	void TraceFrame(Game* g, unsigned char* frameBuffer);
-	Renderer(RayCaster* rc);
-	~Renderer();
+    void TraceFrame(Game* g, unsigned char* frameBuffer);
+    Renderer(RayCaster* rc);
+    ~Renderer();
 };

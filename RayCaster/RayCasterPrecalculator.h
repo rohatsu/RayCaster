@@ -5,8 +5,8 @@
 class RayCasterPrecalculator
 {
 public:
-	RayCasterPrecalculator();
-	~RayCasterPrecalculator();
+    RayCasterPrecalculator();
+    ~RayCasterPrecalculator();
 
-	static void Precalculate();
+    static void Precalculate();
 };

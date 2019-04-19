@@ -10,8 +10,8 @@
 BasedOnStyle:  WebKit
 TabWidth:        4
 IndentWidth:     4
-UseTab:          Always
-ColumnLimit: 120
+UseTab:          Never
+ColumnLimit: 140
 
 # Other languages JavaScript, Proto
 
@@ -116,8 +116,8 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 SpaceAfterTemplateKeyword: true
 
-SortUsingDeclarations: true
-SortIncludes: true
+SortUsingDeclarations: false
+SortIncludes: false
 
 # Comments are for developers, they should arrange them
 ReflowComments: false

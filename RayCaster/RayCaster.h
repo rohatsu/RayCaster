@@ -18,7 +18,7 @@
 #define TABLES_320
 #define SCREEN_WIDTH (uint16_t)320
 #define SCREEN_HEIGHT (uint16_t)256
-#define SCREEN_SCALE 1
+#define SCREEN_SCALE 2
 #define FOV (double)(M_PI / 2)
 #define INV_FACTOR (float)(SCREEN_WIDTH * 100.0f / 320.0f)
 #define LOOKUP_TBL
@@ -37,11 +37,12 @@
 class RayCaster
 {
 public:
-	virtual void Start(uint16_t playerX, uint16_t playerY, int16_t playerA) = 0;
+    virtual void Start(uint16_t playerX, uint16_t playerY, int16_t playerA) = 0;
 
-	virtual void Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep) = 0;
+    virtual void
+    Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep) = 0;
 
-	RayCaster();
+    RayCaster();
 
-	~RayCaster();
+    ~RayCaster();
 };

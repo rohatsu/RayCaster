@@ -8,7 +8,7 @@
 
 uint8_t* Game::CreateMap()
 {
-	/*
+    /*
 	_map = new uint8_t[MAP_X * MAP_Y];
 
 	for (int x = 0; x < 64; x++)
@@ -40,47 +40,47 @@ uint8_t* Game::CreateMap()
 
 	return _map;
 	*/
-	return NULL;
+    return NULL;
 }
 
 void Game::Move(int m, int r)
 {
-	pa += 0.05f * r;
-	px += 0.5f * m * sin(pa);
-	py += 0.5f * m * cos(pa);
+    pa += 0.05f * r;
+    px += 0.5f * m * sin(pa);
+    py += 0.5f * m * cos(pa);
 
-	while(pa < 0)
-	{
-		pa += 2.0f * M_PI;
-	}
-	while(pa >= 2.0f * M_PI)
-	{
-		pa -= 2.0f * M_PI;
-	}
+    while(pa < 0)
+    {
+        pa += 2.0f * M_PI;
+    }
+    while(pa >= 2.0f * M_PI)
+    {
+        pa -= 2.0f * M_PI;
+    }
 
-	if(px < 1)
-	{
-		px = 1.01f;
-	}
-	else if(px > MAP_X - 2)
-	{
-		px = MAP_X - 2 - 0.01f;
-	}
-	if(py < 1)
-	{
-		py = 1.01f;
-	}
-	else if(py > MAP_Y - 2)
-	{
-		py = MAP_Y - 2 - 0.01f;
-	}
+    if(px < 1)
+    {
+        px = 1.01f;
+    }
+    else if(px > MAP_X - 2)
+    {
+        px = MAP_X - 2 - 0.01f;
+    }
+    if(py < 1)
+    {
+        py = 1.01f;
+    }
+    else if(py > MAP_Y - 2)
+    {
+        py = MAP_Y - 2 - 0.01f;
+    }
 }
 
 Game::Game()
 {
-	px = 23.03f;
-	py = 6.8f;
-	pa = 5.25f;
+    px = 23.03f;
+    py = 6.8f;
+    pa = 5.25f;
 }
 
 Game::~Game() {}
