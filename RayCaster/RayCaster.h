@@ -18,7 +18,7 @@
 #define TABLES_320
 #define SCREEN_WIDTH (uint16_t)320
 #define SCREEN_HEIGHT (uint16_t)256
-#define SCREEN_SCALE 2
+#define SCREEN_SCALE 1
 #define FOV (double)(M_PI / 2)
 #define INV_FACTOR (float)(SCREEN_WIDTH * 100.0f / 320.0f)
 #define LOOKUP_TBL
