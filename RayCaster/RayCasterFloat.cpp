@@ -133,16 +133,11 @@ bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 	int ibx = static_cast<int>(x);
 	int iby = static_cast<int>(y);
 
-	if (ibx <= 1 || iby <= 1 || ibx >= MAP_X - 1 || iby >= MAP_Y - 1)
+	if (ibx < 0 || iby < 0 || ibx >= MAP_X - 1 || iby >= MAP_Y - 1)
 	{
 		return true;
 	}
-
-	if (_map[ibx + MAP_X * iby] == 0)
-	{
-		return _map[ibx + MAP_X * iby] == 1;
-	}
-	return true;
+	return _map[+(ibx >> 3) + (iby << (MAP_XS - 3))] & (1 << (8 - (ibx & 0x7)));
 }
 
 float RayCasterFloat::Distance(float px, float py, float ra)
@@ -334,9 +329,8 @@ void RayCasterFloat::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 	_pa = (playerA / 1024.0f) * 2.0f * M_PI;
 }
 
-RayCasterFloat::RayCasterFloat(uint8_t *map) : RayCaster()
+RayCasterFloat::RayCasterFloat() : RayCaster()
 {
-	_map = map;
 }
 
 RayCasterFloat::~RayCasterFloat()

@@ -1,11 +1,11 @@
 #pragma once
 #include "RayCaster.h"
+#include "RayCasterData.h"
 
 class RayCasterFloat :
 	public RayCaster
 {
 protected:
-	uint8_t* _map;
 	float _px;
 	float _py;
 	float _pa;
@@ -25,6 +25,6 @@ public:
 
 	void Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep);
 
-	RayCasterFloat(uint8_t *map);
+	RayCasterFloat();
 	~RayCasterFloat();
 };

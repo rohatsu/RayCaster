@@ -5,6 +5,7 @@
 #include "RayCaster.h"
 #include "RayCasterFloat.h"
 #include "RayCasterFixed.h"
+#include "RayCasterPrecalculator.h"
 #include "Renderer.h"
 #include "Game.h"
 
@@ -140,15 +141,17 @@ int main(int argc, char* args[])
 			screenSurface = SDL_GetWindowSurface(window);
 
 			Game* g = new Game();
-			auto map = g->CreateMap();
+			//auto map = g->CreateMap();
 
-			RayCaster* rcr = new RayCasterFloat(map);
+			RayCaster* rcr = new RayCasterFloat();
 			Renderer* ri = new Renderer(rcr);
 			unsigned char* fbi = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT];
 
-			RayCaster* rcf = new RayCasterFixed(map);
+			RayCaster* rcf = new RayCasterFixed();
 			Renderer* rf = new Renderer(rcf);
 			unsigned char* fbf = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT];
+
+			RayCasterPrecalculator::Precalculate();
 
 			int mDir = 0, rDir = 0;
 			bool q = false;

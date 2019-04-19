@@ -12,9 +12,8 @@ class Renderer
 	uint16_t* _tst;
 
 	RayCaster* _rc;
-	const static uint8_t _tex[4096];
-
 	Game* _g;
+
 public:
 	void TraceFrame(Game* g, unsigned char * fb);
 	void RenderFrame(Game* g, unsigned char * fb);

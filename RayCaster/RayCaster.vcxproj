@@ -143,14 +143,18 @@
     <ClCompile Include="RayCaster.cpp" />
     <ClCompile Include="RayCasterFixed.cpp" />
     <ClCompile Include="RayCasterFloat.cpp" />
+    <ClCompile Include="RayCasterPrecalculator.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
     <ClInclude Include="RayCaster.h" />
+    <ClInclude Include="RayCasterData.h" />
     <ClInclude Include="RayCasterFixed.h" />
     <ClInclude Include="RayCasterFloat.h" />
+    <ClInclude Include="RayCasterPrecalculator.h" />
+    <ClInclude Include="RayCasterTables.h" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>

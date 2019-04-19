@@ -8,6 +8,7 @@
 
 uint8_t* Game::CreateMap()
 {
+	/*
 	_map = new uint8_t[MAP_X * MAP_Y];
 
 	for (int x = 0; x < 64; x++)
@@ -38,6 +39,8 @@ uint8_t* Game::CreateMap()
 	}
 
 	return _map;
+	*/
+	return NULL;
 }
 
 void Game::Move(int m, int r)
@@ -58,11 +61,10 @@ void Game::Move(int m, int r)
 
 Game::Game()
 {
-	px = MAP_X / 2+0.5f;
-	py = MAP_Y / 2+0.5f;
-	pa = 0;
+	px = 23.03f;
+	py = 6.8f;
+	pa = 5.25f;
 }
-
 
 Game::~Game()
 {
