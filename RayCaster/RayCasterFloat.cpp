@@ -123,48 +123,6 @@ void RayCasterFloat::HitLocation1(float sx, float sy, float a, float *hx, float 
 	}
 }
 
-float RayCasterFloat::Distance(float px, float py, float ra)
-{
-	float rx, ry;
-
-	rx = px;
-	ry = py;
-
-	while (ra < 0)
-	{
-		ra += 2.0f * M_PI;
-	}
-
-	while (rx >= 0 && ry >= 0 && rx < MAP_X && ry < MAP_Y)
-	{
-		int dx = 0;
-		int dy = 0;
-		float hx = 0;
-		float hy = 0;
-
-		float bx = 0;
-		float by = 0;
-		float sx = modff(rx, &bx);
-		float sy = modff(ry, &by);
-
-		if (IsWall(rx, ry, ra))
-		{
-			break;
-		}
-
-		HitLocation(sx, sy, ra, &hx, &hy, &dx, &dy);
-
-		rx = bx + hx + dx;
-		ry = by + hy + dy;
-	}
-
-	float dx = rx - px;
-	float dy = ry - py;
-	float d = sqrt(dx * dx + dy * dy);
-
-	return d;
-}
-
 bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 {
 	float x = 0;
@@ -187,7 +145,7 @@ bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 	return true;
 }
 
-float RayCasterFloat::Distance2(float px, float py, float ra)
+float RayCasterFloat::Distance(float px, float py, float ra)
 {
 	float rx, ry;
 
@@ -307,6 +265,8 @@ float RayCasterFloat::Distance2(float px, float py, float ra)
 				hitVert = true;
 				rx = x + (tileStepX == -1 ? 1 : 0);
 				ry = yIntercept;
+				_hc = yIntercept;
+				_hv = true;
 				break;
 			}
 			yIntercept += yStep;
@@ -322,6 +282,8 @@ float RayCasterFloat::Distance2(float px, float py, float ra)
 			{
 				hitHoriz = true;
 				rx = xIntercept;
+				_hc = xIntercept;
+				_hv = 0;
 				ry = y + (tileStepY == -1 ? 1 : 0);
 				break;
 			}
@@ -341,26 +303,41 @@ float RayCasterFloat::Distance2(float px, float py, float ra)
 	return d;
 }
 
-void RayCasterFloat::Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst)
+void RayCasterFloat::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-	float da = ((int16_t)x - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
-	float d2 = Distance2(_px, _py, _pa + da);
+	float da = ((int16_t)screenX - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
+	float d2 = Distance(_px, _py, _pa + da);
 	float ad = d2 * cos(da);
+	float dum;
+	*textureX = (uint8_t)(256.0f * modff(_hc, &dum));
+	*textureNo = _hv;
+	*textureY = 0;
+	*textureStep = 0;
 	if (ad > 0)
 	{
-		*sso = INV_FACTOR / ad;
+		*screenY = INV_FACTOR / ad;
+		auto txs = (*screenY * 2.0f);
+		if (txs != 0)
+		{
+			*textureStep = (256 / txs) * 256;
+			if (txs > SCREEN_HEIGHT)
+			{
+				auto ino = (txs - SCREEN_HEIGHT) / 2;
+				*textureY = ino * (256 / txs) * 256;
+			}
+		}
 	}
 	else
 	{
-		*sso = 0;
+		*screenY = 0;
 	}
 }
 
-void RayCasterFloat::Start(uint16_t px, uint16_t py, int16_t pa)
+void RayCasterFloat::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 {
-	_px = (px / 1024.0f) * 4.0f;
-	_py = (py / 1024.0f) * 4.0f;
-	_pa = (pa / 1024.0f) * 2.0f * M_PI;
+	_px = (playerX / 1024.0f) * 4.0f;
+	_py = (playerY / 1024.0f) * 4.0f;
+	_pa = (playerA / 1024.0f) * 2.0f * M_PI;
 }
 
 RayCasterFloat::RayCasterFloat(uint8_t *map) : RayCaster()

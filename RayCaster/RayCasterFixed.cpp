@@ -216,10 +216,10 @@ wallhit:
 
 // (px, py) is 8 box coordinate bits, 8 inside coordinate bits
 // (pa) is full circle as 1024
-//void RayCasterFixed::Viewport(uint16_t _sx, uint16_t _sy, int16_t pa, uint8_t *wd)
-void RayCasterFixed::Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst)
+//void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
+void RayCasterFixed::Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-	uint16_t _ra = static_cast<uint16_t>(_pa + _da[x]);
+	uint16_t _ra = static_cast<uint16_t>(_pa + _da[screenX]);
 
 	// neutralize artefacts around edges	
 	switch (_ra % 256)
@@ -290,21 +290,21 @@ void RayCasterFixed::Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * 
 	}
 	if (d >= MIN_DIST)
 	{
-		*sso = Height((d - MIN_DIST) >> 2);
+		*screenY = Height((d - MIN_DIST) >> 2);
 	}
 	else
 	{
-		*sso = SCREEN_HEIGHT >> 1;
+		*screenY = SCREEN_HEIGHT >> 1;
 	}
 }
 
-void RayCasterFixed::Start(uint16_t px, uint16_t py, int16_t pa)
+void RayCasterFixed::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 {
-	_qtr = pa >> 8;
-	_qa = pa % 256;
-	_px = px;
-	_py = py;
-	_pa = pa;
+	_qtr = playerA >> 8;
+	_qa = playerA % 256;
+	_px = playerX;
+	_py = playerY;
+	_pa = playerA;
 }
 
 RayCasterFixed::RayCasterFixed(uint8_t *map) : RayCaster()

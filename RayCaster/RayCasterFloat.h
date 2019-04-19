@@ -10,21 +10,21 @@ protected:
 	float _py;
 	float _pa;
 	float* _wd;
+	float _hc; // hit column
+	bool _hv;
 
 	float Distance(float px, float py, float ra);
 
 	bool IsWall(float rx, float ry, float ra);
-
-	float Distance2(float px, float py, float ra);
 
 	void HitLocation(float sx, float sy, float a, float *hx, float *hy, int *dx, int *dy);
 
 	void HitLocation1(float sx, float sy, float a, float *hx, float *hy);
 
 public:
-	void Start(uint16_t px, uint16_t py, int16_t pa);
+	void Start(uint16_t playerX, uint16_t playerY, int16_t playerA);
 
-	void Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst);
+	void Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep);
 
 	RayCasterFloat(uint8_t *map);
 	~RayCasterFloat();

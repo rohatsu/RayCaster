@@ -1,5 +1,7 @@
 #include <SDL.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include "RayCaster.h"
 #include "RayCasterFloat.h"
 #include "RayCasterFixed.h"
@@ -21,14 +23,8 @@ void DrawBuffer(SDL_Surface* surface, unsigned char *fb, int dx, int dy)
 			r.y = (y + dy) * SCREEN_SCALE;
 			r.w = SCREEN_SCALE;
 			r.h = SCREEN_SCALE;
-			if (fb[(SCREEN_WIDTH * y) + x] == 0)
-			{
-				SDL_FillRect(surface, &r, SDL_MapRGB(surface->format, 0xFF, 0xFF, 0xFF));
-			}
-			else
-			{
-				SDL_FillRect(surface, &r, SDL_MapRGB(surface->format, 0x0, 0x0, 0x0));
-			}
+			auto v = fb[(SCREEN_WIDTH * y) + x];
+			SDL_FillRect(surface, &r, SDL_MapRGB(surface->format, v, v, v));
 		}
 	}
 }
@@ -65,7 +61,7 @@ bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
 	{
 		return true;
 	}
-	else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+	else if ((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) && event.key.repeat == 0)
 	{
 		auto k = event.key;
 		auto p = event.type == SDL_KEYDOWN;

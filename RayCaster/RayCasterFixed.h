@@ -42,9 +42,9 @@ protected:
 	void Precalculate();
 
 public:
-	void Start(uint16_t px, uint16_t py, int16_t pa);
+	void Start(uint16_t playerX, uint16_t playerY, int16_t playerA);
 
-	void Trace(uint16_t x, uint8_t * sso, uint8_t * tso, uint16_t * tst);
+	void Trace(uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep);
 
 	RayCasterFixed(uint8_t* map);
 	~RayCasterFixed();

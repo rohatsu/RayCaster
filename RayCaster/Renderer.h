@@ -5,8 +5,15 @@
 
 class Renderer
 {
-	unsigned char* _wh;
+	uint8_t* _sso;
+	uint8_t* _tc;
+	uint8_t* _tn;
+	uint16_t* _tso;
+	uint16_t* _tst;
+
 	RayCaster* _rc;
+	const static uint8_t _tex[4096];
+
 	Game* _g;
 public:
 	void TraceFrame(Game* g, unsigned char * fb);
