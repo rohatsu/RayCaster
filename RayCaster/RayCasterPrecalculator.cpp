@@ -1,28 +1,24 @@
 #define _USE_MATH_DEFINES
 
-#include <sstream>
 #include <iostream>
 #include <math.h>
+#include <sstream>
 
 #include "RayCasterPrecalculator.h"
 #include "RayCasterTables.h"
 
-RayCasterPrecalculator::RayCasterPrecalculator()
-{
-}
+RayCasterPrecalculator::RayCasterPrecalculator() {}
 
-RayCasterPrecalculator::~RayCasterPrecalculator()
-{
-}
+RayCasterPrecalculator::~RayCasterPrecalculator() {}
 
-template<typename T>
+template <typename T>
 void DumpLookupTable(std::ostringstream& dump, T* t, int len)
 {
 	dump << "{";
-	for (int i = 0; i < len; i++)
+	for(int i = 0; i < len; i++)
 	{
 		dump << (int)t[i];
-		if (i == len - 1)
+		if(i == len - 1)
 		{
 			dump << "};" << std::endl;
 		}
@@ -38,47 +34,47 @@ void RayCasterPrecalculator::Precalculate()
 #ifndef HAS_TABLES
 
 	// replace precalculated lookup tables with these results if you change any constants
-	for (int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; i++)
 	{
-		_tan[i] = static_cast<uint16_t>((256.0f * tan(i * M_PI_2 / 256.0f)));
+		_tan[i]	  = static_cast<uint16_t>((256.0f * tan(i * M_PI_2 / 256.0f)));
 		_cotan[i] = static_cast<uint16_t>((256.0f / tan(i * M_PI_2 / 256.0f)));
 	}
-	for (int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; i++)
 	{
 		_sin[i] = static_cast<uint8_t>(256.0f * sin(i / 1024.0f * 2 * M_PI));
 		_cos[i] = static_cast<uint8_t>(256.0f * cos(i / 1024.0f * 2 * M_PI));
 	}
-	for (int i = 0; i < SCREEN_WIDTH; i++)
+	for(int i = 0; i < SCREEN_WIDTH; i++)
 	{
 		int16_t da = static_cast<int16_t>((i - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4) / M_PI_2 * 256.0f);
-		if (da < 0)
+		if(da < 0)
 		{
 			da += 1024;
 		}
 		_da[i] = static_cast<uint16_t>(da);
 	}
-	for (int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; i++)
 	{
 		_neard[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 2) + MIN_DIST) >> 2)) >> 2);
-		_fard[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 5) + MIN_DIST) >> 5)) >> 5);
+		_fard[i]  = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 5) + MIN_DIST) >> 5)) >> 5);
 	}
-	for (int i = 0; i < 256; i++)
+	for(int i = 0; i < 256; i++)
 	{
 		auto txn = ((INV_FACTOR_INT / (((i * 4.0f) + MIN_DIST) / 4.0f)) / 4.0f) * 2.0f;
-		if (txn != 0)
+		if(txn != 0)
 		{
 			_nears[i] = (256 / txn) * 256;
 		}
 		auto txf = ((INV_FACTOR_INT / (((i * 32.0f) + MIN_DIST) / 32.0f)) / 32.0f) * 2.0f;
-		if (txf != 0)
+		if(txf != 0)
 		{
 			_fars[i] = (256 / txf) * 256;
 		}
 	}
-	for (int i = 1; i < 256; i++)
+	for(int i = 1; i < 256; i++)
 	{
-		auto txs = ((INV_FACTOR_INT / (float)(i / 2.0f)));
-		auto ino = (txs - SCREEN_HEIGHT) / 2;
+		auto txs   = ((INV_FACTOR_INT / (float)(i / 2.0f)));
+		auto ino   = (txs - SCREEN_HEIGHT) / 2;
 		_shorts[i] = (256 / txs) * 256;
 		_shorto[i] = ino * (256 / txs) * 256;
 	}

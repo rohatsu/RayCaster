@@ -1,64 +1,70 @@
 #define _USE_MATH_DEFINES
 
+#include <math.h>
 #include "Renderer.h"
 #include "RayCasterData.h"
-#include <math.h>
 
-void Renderer::TraceFrame(Game *g, unsigned char * fb)
+void Renderer::TraceFrame(Game* g, unsigned char* fb)
 {
-	_rc->Start(static_cast<uint16_t>(g->px * 256.0f), static_cast<uint16_t>(g->py * 256.0f), static_cast<int16_t>(g->pa / (2.0f * M_PI) * 1024.0f));
+	_rc->Start(static_cast<uint16_t>(g->px * 256.0f),
+			   static_cast<uint16_t>(g->py * 256.0f),
+			   static_cast<int16_t>(g->pa / (2.0f * M_PI) * 1024.0f));
 
-	for (int x = 0; x < SCREEN_WIDTH; x++)
+	for(int x = 0; x < SCREEN_WIDTH; x++)
 	{
-		_rc->Trace(x, _sso + x, _tn + x, _tc + x, _tso + x, _tst + x);
-	}
-}
+		uint8_t		   sso;
+		uint8_t		   tc;
+		uint8_t		   tn;
+		uint16_t	   tso;
+		uint16_t	   tst;
+		unsigned char* lb = fb + x;
 
-void Renderer::RenderFrame(Game *g, unsigned char * fb)
-{
-	for (int x = 0; x < SCREEN_WIDTH; x++)
-	{
-		int sso = static_cast<int>(_sso[x]);
-		int ws = (SCREEN_HEIGHT / 2) - sso;
-		float to = _tso[x] / 256.0f; // texture offset
-		float ts = _tst[x] / 256.0f; // texture step << 8
+		_rc->Trace(x, &sso, &tn, &tc, &tso, &tst);
 
-		for (int y = 0; y < SCREEN_HEIGHT; y++)
+		int16_t ws = HORIZON_HEIGHT - sso;
+		if(ws < 0)
 		{
-			int i1 = (SCREEN_WIDTH * y) + x;
-			if (y < ws || y >(SCREEN_HEIGHT / 2 + sso))
-			{
-				fb[i1] = 96 + abs(y - SCREEN_HEIGHT / 2);
-			}
-			else
-			{
-				// paint texture pixel
-				auto ty = (static_cast<int>(round(to)) % 256) >> 2;
-				auto tx = static_cast<int>(_tc[x] % 256) >> 2;
-				auto tv = _tex[64 * ty + tx];
+			ws	= 0;
+			sso = HORIZON_HEIGHT;
+		}
+		uint16_t to = tso;
+		uint16_t ts = tst;
 
-				to += ts;
+		for(int y = 0; y < ws; y++)
+		{
+			*lb = 96 + (HORIZON_HEIGHT - y);
+			lb += SCREEN_WIDTH;
+		}
 
-				if (_tn[x] == 1 && tv > 0)
-				{
-					tv >>= 1;
-				}
-				fb[i1] = tv;// *63 + 0;
+		for(int y = 0; y < sso * 2; y++)
+		{
+			// paint texture pixel
+			auto ty = static_cast<int>(to >> 10);
+			auto tx = static_cast<int>(tc >> 2);
+			auto tv = _tex256[(ty << 6) + tx];
+
+			to += ts;
+
+			if(tn == 1 && tv > 0)
+			{
+				// dark wall
+				tv >>= 1;
 			}
+			*lb = tv;
+			lb += SCREEN_WIDTH;
+		}
+
+		for(int y = 0; y < ws; y++)
+		{
+			*lb = 96 + (HORIZON_HEIGHT - (ws - y));
+			lb += SCREEN_WIDTH;
 		}
 	}
 }
 
-Renderer::Renderer(RayCaster *rc)
+Renderer::Renderer(RayCaster* rc)
 {
-	_sso = new uint8_t[SCREEN_WIDTH];
-	_tc = new uint8_t[SCREEN_WIDTH];
-	_tn = new uint8_t[SCREEN_WIDTH];
-	_tso = new uint16_t[SCREEN_WIDTH];
-	_tst = new uint16_t[SCREEN_WIDTH];
 	_rc = rc;
 }
 
-Renderer::~Renderer()
-{
-}
+Renderer::~Renderer() {}

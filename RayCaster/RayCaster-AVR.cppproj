@@ -82,10 +82,10 @@
         <avrgcc.compiler.directories.IncludePaths>
           <ListValues>
             <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.209\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\core</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\libraries\SPI</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\variants\standard</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\core</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\libraries\SPI</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\variants\standard</Value>
           </ListValues>
         </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
@@ -112,10 +112,10 @@
         <avrgcccpp.compiler.directories.IncludePaths>
           <ListValues>
             <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.209\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\core</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\libraries\SPI</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\variants\standard</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\core</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\libraries\SPI</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\variants\standard</Value>
           </ListValues>
         </avrgcccpp.compiler.directories.IncludePaths>
         <avrgcccpp.compiler.optimization.level>Optimize most (-O3)</avrgcccpp.compiler.optimization.level>
@@ -166,10 +166,10 @@
         <avrgcc.compiler.directories.IncludePaths>
           <ListValues>
             <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.209\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\core</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\libraries\SPI</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\variants\standard</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\core</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\libraries\SPI</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\variants\standard</Value>
           </ListValues>
         </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
@@ -196,10 +196,10 @@
         <avrgcccpp.compiler.directories.IncludePaths>
           <ListValues>
             <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.209\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\core</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\libraries\SPI</Value>
-            <Value>%24(ProjectDir)\ArduinoCore\include\variants\standard</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\core</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\libraries\SPI</Value>
+            <Value>%24(ProjectDir)\..\ArduinoCore\include\variants\standard</Value>
           </ListValues>
         </avrgcccpp.compiler.directories.IncludePaths>
         <avrgcccpp.compiler.optimization.level>Optimize most (-O3)</avrgcccpp.compiler.optimization.level>
@@ -250,7 +250,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="ArduinoCore\ArduinoCore.cppproj">
+    <ProjectReference Include="..\ArduinoCore\ArduinoCore.cppproj">
       <Name>ArduinoCore</Name>
       <Project>686aac53-9295-4986-99d6-97c44395cd74</Project>
       <Private>True</Private>

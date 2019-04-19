@@ -32,6 +32,7 @@
 #define MAP_Y (uint8_t)32
 #define INV_FACTOR_INT ((uint16_t)(SCREEN_WIDTH * 80))
 #define MIN_DIST (int)((160 * ((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT)))
+#define HORIZON_HEIGHT (SCREEN_HEIGHT / 2)
 
 class RayCaster
 {

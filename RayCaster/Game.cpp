@@ -1,10 +1,10 @@
 #define _USE_MATH_DEFINES
 
-#include "RayCaster.h"
 #include "Game.h"
+#include "RayCaster.h"
 
-#include <time.h>
 #include <cstdlib>
+#include <time.h>
 
 uint8_t* Game::CreateMap()
 {
@@ -49,13 +49,30 @@ void Game::Move(int m, int r)
 	px += 0.5f * m * sin(pa);
 	py += 0.5f * m * cos(pa);
 
-	while (pa < 0)
+	while(pa < 0)
 	{
 		pa += 2.0f * M_PI;
 	}
-	while (pa >= 2.0f * M_PI)
+	while(pa >= 2.0f * M_PI)
 	{
 		pa -= 2.0f * M_PI;
+	}
+
+	if(px < 1)
+	{
+		px = 1.01f;
+	}
+	else if(px > MAP_X - 2)
+	{
+		px = MAP_X - 2 - 0.01f;
+	}
+	if(py < 1)
+	{
+		py = 1.01f;
+	}
+	else if(py > MAP_Y - 2)
+	{
+		py = MAP_Y - 2 - 0.01f;
 	}
 }
 
@@ -66,6 +83,4 @@ Game::Game()
 	pa = 5.25f;
 }
 
-Game::~Game()
-{
-}
+Game::~Game() {}

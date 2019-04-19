@@ -1,29 +1,29 @@
-#include <SDL.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
+#include "Game.h"
 #include "RayCaster.h"
-#include "RayCasterFloat.h"
 #include "RayCasterFixed.h"
+#include "RayCasterFloat.h"
 #include "RayCasterPrecalculator.h"
 #include "Renderer.h"
-#include "Game.h"
+#include <SDL.h>
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
 
 #define TICK_HEIGHT 3
 #define TICK_SCALE 32
 
-void DrawBuffer(SDL_Surface* surface, unsigned char *fb, int dx, int dy)
+void DrawBuffer(SDL_Surface* surface, unsigned char* fb, int dx, int dy)
 {
 	SDL_Rect r;
 
-	for (int x = 0; x < SCREEN_WIDTH; x++)
+	for(int x = 0; x < SCREEN_WIDTH; x++)
 	{
-		for (int y = 0; y < SCREEN_HEIGHT; y++)
+		for(int y = 0; y < SCREEN_HEIGHT; y++)
 		{
-			r.x = (x + dx) * SCREEN_SCALE;
-			r.y = (y + dy) * SCREEN_SCALE;
-			r.w = SCREEN_SCALE;
-			r.h = SCREEN_SCALE;
+			r.x	   = (x + dx) * SCREEN_SCALE;
+			r.y	   = (y + dy) * SCREEN_SCALE;
+			r.w	   = SCREEN_SCALE;
+			r.h	   = SCREEN_SCALE;
 			auto v = fb[(SCREEN_WIDTH * y) + x];
 			SDL_FillRect(surface, &r, SDL_MapRGB(surface->format, v, v, v));
 		}
@@ -43,7 +43,7 @@ void DrawTicks(SDL_Surface* surface, Uint32 ticks, int dx, int dy)
 
 	auto w = ticks * TICK_SCALE * SCREEN_SCALE;
 
-	if (w > SCREEN_WIDTH * SCREEN_SCALE)
+	if(w > SCREEN_WIDTH * SCREEN_SCALE)
 	{
 		w = 1;
 	}
@@ -56,23 +56,23 @@ void DrawTicks(SDL_Surface* surface, Uint32 ticks, int dx, int dy)
 	SDL_FillRect(surface, &r, SDL_MapRGB(surface->format, 0xFF, 0x00, 0x00));
 }
 
-bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
+bool ProcessEvent(const SDL_Event& event, int* mDir, int* rDir)
 {
-	if (event.type == SDL_QUIT)
+	if(event.type == SDL_QUIT)
 	{
 		return true;
 	}
-	else if ((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) && event.key.repeat == 0)
+	else if((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) && event.key.repeat == 0)
 	{
 		auto k = event.key;
 		auto p = event.type == SDL_KEYDOWN;
-		switch (k.keysym.sym)
+		switch(k.keysym.sym)
 		{
 		case SDLK_ESCAPE:
 			return true;
 			break;
 		case SDLK_UP:
-			if (p)
+			if(p)
 			{
 				*mDir = 1;
 			}
@@ -82,7 +82,7 @@ bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
 			}
 			break;
 		case SDLK_DOWN:
-			if (p)
+			if(p)
 			{
 				*mDir = -1;
 			}
@@ -92,7 +92,7 @@ bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
 			}
 			break;
 		case SDLK_LEFT:
-			if (p)
+			if(p)
 			{
 				*rDir = -1;
 			}
@@ -102,7 +102,7 @@ bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
 			}
 			break;
 		case SDLK_RIGHT:
-			if (p)
+			if(p)
 			{
 				*rDir = 1;
 			}
@@ -120,19 +120,23 @@ bool ProcessEvent(const SDL_Event& event, int* mDir, int *rDir)
 
 int main(int argc, char* args[])
 {
-	SDL_Window* window = NULL;
+	SDL_Window*	 window		   = NULL;
 	SDL_Surface* screenSurface = NULL;
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 	}
 	else
 	{
-		window = SDL_CreateWindow("RayCaster", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			SCREEN_SCALE * (SCREEN_WIDTH * 2 + 1), SCREEN_SCALE * (SCREEN_HEIGHT + TICK_HEIGHT), SDL_WINDOW_SHOWN);
+		window = SDL_CreateWindow("RayCaster",
+								  SDL_WINDOWPOS_UNDEFINED,
+								  SDL_WINDOWPOS_UNDEFINED,
+								  SCREEN_SCALE * (SCREEN_WIDTH * 2 + 1),
+								  SCREEN_SCALE * (SCREEN_HEIGHT + TICK_HEIGHT),
+								  SDL_WINDOW_SHOWN);
 
-		if (window == NULL)
+		if(window == NULL)
 		{
 			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		}
@@ -143,34 +147,34 @@ int main(int argc, char* args[])
 			Game* g = new Game();
 			//auto map = g->CreateMap();
 
-			RayCaster* rcr = new RayCasterFloat();
-			Renderer* ri = new Renderer(rcr);
+			RayCaster*	   rcr = new RayCasterFloat();
+			Renderer*	   ri  = new Renderer(rcr);
 			unsigned char* fbi = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT];
 
-			RayCaster* rcf = new RayCasterFixed();
-			Renderer* rf = new Renderer(rcf);
+			RayCaster*	   rcf = new RayCasterFixed();
+			Renderer*	   rf  = new Renderer(rcf);
 			unsigned char* fbf = new unsigned char[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 			RayCasterPrecalculator::Precalculate();
 
-			int mDir = 0, rDir = 0;
+			int	 mDir = 0, rDir = 0;
 			bool q = false;
 
 			SDL_Event event;
 
 			Uint32 ticks;
 
-			while (!q && SDL_WaitEvent(&event))
+			while(!q && SDL_WaitEvent(&event))
 			{
 				ticks = SDL_GetTicks();
 				ri->TraceFrame(g, fbi);
 				auto iTicks = SDL_GetTicks() - ticks;
-				ri->RenderFrame(g, fbi);
+				//				ri->RenderFrame(g, fbi);
 
 				ticks = SDL_GetTicks();
 				rf->TraceFrame(g, fbf);
 				auto fTicks = SDL_GetTicks() - ticks;
-				rf->RenderFrame(g, fbf);
+				//				rf->RenderFrame(g, fbf);
 
 				DrawBuffer(screenSurface, fbi, 0, 0);
 				DrawTicks(screenSurface, iTicks, 0, SCREEN_HEIGHT);

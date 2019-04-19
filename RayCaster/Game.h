@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 class Game
 {
 private:
@@ -7,11 +9,10 @@ private:
 
 public:
 	uint8_t* CreateMap();
-	void Move(int m, int r);
+	void	 Move(int m, int r);
 
 	float px, py, pa;
 
 	Game();
 	~Game();
 };
-
