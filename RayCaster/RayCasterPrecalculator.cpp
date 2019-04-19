@@ -5,6 +5,8 @@
 #include <sstream>
 
 #include "RayCasterPrecalculator.h"
+
+#define LOOKUP_STORAGE
 #include "RayCasterTables.h"
 
 RayCasterPrecalculator::RayCasterPrecalculator() {}
@@ -20,7 +22,7 @@ void DumpLookupTable(std::ostringstream& dump, T* t, int len)
         dump << (int)t[i];
         if(i == len - 1)
         {
-            dump << "};" << std::endl;
+            dump << "};" << std::endl << std::endl;
         }
         else
         {
@@ -46,7 +48,8 @@ void RayCasterPrecalculator::Precalculate()
     }
     for(int i = 0; i < SCREEN_WIDTH; i++)
     {
-        int16_t da = static_cast<int16_t>((i - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4) / M_PI_2 * 256.0f);
+        float deltaAngle = atanf(((int16_t)i - SCREEN_WIDTH / 2.0f) / (SCREEN_WIDTH / 2.0f) * M_PI / 4);
+        int16_t da         = static_cast<int16_t>(deltaAngle / M_PI_2 * 256.0f);
         if(da < 0)
         {
             da += 1024;

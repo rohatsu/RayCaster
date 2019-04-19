@@ -1,8 +1,10 @@
 // fixed-point implementation
 
 #include "RayCasterFixed.h"
-#include "RayCasterTables.h"
 #include "RayCasterData.h"
+
+#define LOOKUP_STORAGE extern
+#include "RayCasterTables.h"
 
 // (v * f) >> 8
 uint16_t RayCasterFixed::MulU(uint8_t v, uint16_t f)

@@ -25,7 +25,7 @@ int main(int argc, char* args[])
         SDL_Window* sdlWindow = SDL_CreateWindow("RayCaster",
                                                  SDL_WINDOWPOS_UNDEFINED,
                                                  SDL_WINDOWPOS_UNDEFINED,
-                                                 SCREEN_SCALE * (SCREEN_WIDTH * 2),
+                                                 SCREEN_SCALE * (SCREEN_WIDTH * 2 + 1),
                                                  SCREEN_SCALE * SCREEN_HEIGHT,
                                                  SDL_WINDOW_SHOWN);
 
@@ -63,7 +63,7 @@ int main(int argc, char* args[])
                 fixedRenderer.TraceFrame(&game, fixedBuffer);
 
                 DrawBuffer(sdlRenderer, floatTexture, floatBuffer, 0);
-                DrawBuffer(sdlRenderer, fixedTexture, fixedBuffer, SCREEN_WIDTH);
+                DrawBuffer(sdlRenderer, fixedTexture, fixedBuffer, SCREEN_WIDTH + 1);
 
                 SDL_RenderPresent(sdlRenderer);
 

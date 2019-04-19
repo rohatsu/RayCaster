@@ -158,9 +158,9 @@ float RayCasterFloat::Distance(float playerX, float playerY, float rayA, float* 
 void RayCasterFloat::Trace(
     uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-    float deltaAngle = ((int16_t)screenX - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
-    float hitOffset;
+	float hitOffset;
     int   hitDirection;
+    float deltaAngle   = atanf(((int16_t)screenX - SCREEN_WIDTH / 2.0f) / (SCREEN_WIDTH / 2.0f) * M_PI / 4);
     float lineDistance = Distance(_playerX, _playerY, _playerA + deltaAngle, &hitOffset, &hitDirection);
     float distance     = lineDistance * cos(deltaAngle);
     float dum;
