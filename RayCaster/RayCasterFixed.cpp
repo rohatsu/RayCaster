@@ -1,5 +1,9 @@
 // fixed-point implementation
+#define _USE_MATH_DEFINES
 
+#include <sstream>
+#include <iostream>
+#include <math.h>
 #include "RayCasterFixed.h"
 
 #define INVERT(x) (uint8_t)((x ^ 255) + 1)
@@ -321,11 +325,28 @@ RayCasterFixed::RayCasterFixed(uint8_t *map) : RayCaster()
 	Precalculate();
 }
 
+template<typename T>
+void DumpLookupTable(std::ostringstream& dump, T* t, int len)
+{
+	dump << "{";
+	for (int i = 0; i < len; i++)
+	{
+		dump << (int)t[i];
+		if (i == len - 1)
+		{
+			dump << "};" << std::endl;
+		}
+		else
+		{
+			dump << ",";
+		}
+	}
+}
+
 void RayCasterFixed::Precalculate()
 {
+	// replace precalculated lookup tables with these results if you change any constants
 	/*
-	// replace precalculated tables with these results if you change any constants
-
 	for (int i = 0; i < 256; i++)
 	{
 	_tan[i] = static_cast<uint16_t>((256.0f * tan(i * M_PI_2 / 256.0f)));
@@ -369,7 +390,45 @@ void RayCasterFixed::Precalculate()
 		auto ino = (txs - SCREEN_HEIGHT) / 2;
 		_shorts[i] = (256 / txs) * 256;
 		_shorto[i] = ino * (256 / txs) * 256;
-	}*/
+	}
+
+	std::ostringstream dump;
+
+	dump << "uint16_t _tan[256] = ";
+	DumpLookupTable(dump, _tan, 256);
+
+	dump << "uint16_t _cotan[256] = ";
+	DumpLookupTable(dump, _cotan, 256);
+
+	dump << "uint8_t _sin[256] = ";
+	DumpLookupTable(dump, _sin, 256);
+
+	dump << "uint8_t _cos[256] = ";
+	DumpLookupTable(dump, _cos, 256);
+
+	dump << "uint8_t _neard[256] = ";
+	DumpLookupTable(dump, _neard, 256);
+
+	dump << "uint8_t _fard[256] = ";
+	DumpLookupTable(dump, _fard, 256);
+
+	dump << "uint16_t _nears[256] = ";
+	DumpLookupTable(dump, _nears, 256);
+
+	dump << "uint16_t _fars[256] = ";
+	DumpLookupTable(dump, _fars, 256);
+
+	dump << "uint16_t _shorto[256] = ";
+	DumpLookupTable(dump, _shorto, 256);
+
+	dump << "uint16_t _shorts[256] = ";
+	DumpLookupTable(dump, _shorts, 256);
+
+	dump << "uint16_t _da[SCREEN_WIDTH] = ";
+	DumpLookupTable(dump, _da, SCREEN_WIDTH);
+
+	std::cout << dump.str() << std::endl;
+	*/
 }
 
 RayCasterFixed::~RayCasterFixed()

@@ -241,12 +241,6 @@ float RayCasterFloat::Distance(float px, float py, float ra)
 	bool hitVert = false;
 	bool hitHoriz = false;
 	bool somethingDone = false;
-
-	if (yStep * tileStepY < 0 || xStep * tileStepX < 0)
-	{
-		int f = 4;
-	}
-
 	int isTop = 0;
 	int isRight = 0;
 
@@ -342,7 +336,6 @@ void RayCasterFloat::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 
 RayCasterFloat::RayCasterFloat(uint8_t *map) : RayCaster()
 {
-	_wd = new float[SCREEN_WIDTH];
 	_map = map;
 }
 

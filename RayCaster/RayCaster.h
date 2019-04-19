@@ -21,7 +21,7 @@
 #define MAP_X (uint8_t)64
 #define MAP_XS (uint8_t)6
 #define MAP_Y (uint8_t)64
-#define FOV (double)1.75f
+#define FOV (double)(M_PI / 2)
 #define INV_FACTOR (float)100.0f
 #define INV_FACTOR_INT ((uint16_t)(SCREEN_WIDTH * 80))
 #define MIN_DIST 256

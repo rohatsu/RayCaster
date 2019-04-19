@@ -9,8 +9,7 @@ protected:
 	float _px;
 	float _py;
 	float _pa;
-	float* _wd;
-	float _hc; // hit column
+	float _hc;
 	bool _hv;
 
 	float Distance(float px, float py, float ra);
