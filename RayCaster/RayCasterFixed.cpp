@@ -4,43 +4,19 @@
 #include "RayCasterTables.h"
 #include "RayCasterData.h"
 
-#define INVERT(x) (uint8_t)((x ^ 255) + 1)
-
-#define ABS(x) (x < 0 ? -x : x)
-
 // (v * f) >> 8
-uint16_t RayCasterFixed::Mul(uint8_t v, uint16_t f)
+uint16_t RayCasterFixed::MulU(uint8_t v, uint16_t f)
 {
-    uint8_t  f_h = f >> 8;
-    uint8_t  f_l = f % 256;
-    uint16_t hm  = v * f_h;
-    uint16_t lm  = v * f_l;
+    const uint8_t  f_h = f >> 8;
+    const uint8_t  f_l = f % 256;
+    const uint16_t hm  = v * f_h;
+    const uint16_t lm  = v * f_l;
     return hm + (lm >> 8);
-}
-
-void RayCasterFixed::Height(uint16_t d, uint8_t* h, uint16_t* ts)
-{
-    if(d >= 256)
-    {
-        uint16_t ds = d >> 3;
-        if(ds >= 256)
-        {
-            *h  = LOOKUP8(_fard, 255) - 1;
-            *ts = LOOKUP16(_fars, 255);
-        }
-        *h  = LOOKUP8(_fard, ds);
-        *ts = LOOKUP16(_fars, ds);
-    }
-    else
-    {
-        *h  = LOOKUP8(_neard, d);
-        *ts = LOOKUP16(_nears, d);
-    }
 }
 
 int16_t RayCasterFixed::MulS(uint8_t v, int16_t f)
 {
-    uint16_t uf = Mul(v, static_cast<uint16_t>(ABS(f)));
+    const uint16_t uf = MulU(v, static_cast<uint16_t>(ABS(f)));
     if(f < 0)
     {
         return ~uf;
@@ -48,99 +24,121 @@ int16_t RayCasterFixed::MulS(uint8_t v, int16_t f)
     return uf;
 }
 
-int16_t RayCasterFixed::MulTan(uint8_t v, uint8_t i, uint8_t qtr, uint8_t a, const uint16_t* fun)
+int16_t RayCasterFixed::MulTan(uint8_t value, bool inverse, uint8_t quarter, uint8_t angle, const uint16_t* lookupTable)
 {
-    uint8_t iv = v;
-    if(i == 1)
+    uint8_t signedValue = value;
+    if(inverse)
     {
-        if(v == 0)
+        if(value == 0)
         {
-            if(qtr % 2 == 1)
+            if(quarter % 2 == 1)
             {
-                return -AbsTan(qtr, a, fun);
+                return -AbsTan(quarter, angle, lookupTable);
             }
-            return AbsTan(qtr, a, fun);
+            return AbsTan(quarter, angle, lookupTable);
         }
-        iv = INVERT(v);
+        signedValue = INVERT(value);
     }
-    if(iv == 0)
+    if(signedValue == 0)
     {
         return 0;
     }
-    if(qtr % 2 == 1)
+    if(quarter % 2 == 1)
     {
-        return -Mul(iv, LOOKUP16(fun, INVERT(a)));
+        return -MulU(signedValue, LOOKUP16(lookupTable, INVERT(angle)));
     }
-    return Mul(iv, LOOKUP16(fun, a));
+    return MulU(signedValue, LOOKUP16(lookupTable, angle));
 }
 
-int16_t RayCasterFixed::AbsTan(uint8_t qtr, uint8_t a, const uint16_t* fun)
+inline int16_t RayCasterFixed::AbsTan(uint8_t quarter, uint8_t angle, const uint16_t* lookupTable)
 {
-    if(qtr % 2 == 1)
+    if(quarter & 1)
     {
-        return LOOKUP16(fun, INVERT(a));
+        return LOOKUP16(lookupTable, INVERT(angle));
     }
-    return LOOKUP16(fun, a);
+    return LOOKUP16(lookupTable, angle);
 }
 
-inline bool RayCasterFixed::IsWall(uint8_t bx, uint8_t by, uint8_t sx, uint8_t sy)
+inline bool RayCasterFixed::IsWall(uint8_t tileX, uint8_t tileY)
 {
-    if(bx > MAP_X - 1 || by > MAP_Y - 1)
+    if(tileX > MAP_X - 1 || tileY > MAP_Y - 1)
     {
         return true;
     }
-    return LOOKUP8(_map, (bx >> 3) + (by << (MAP_XS - 3))) & (1 << (8 - (bx & 0x7)));
+    return LOOKUP8(g_map, (tileX >> 3) + (tileY << (MAP_XS - 3))) & (1 << (8 - (tileX & 0x7)));
 }
 
-void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t* dx, int16_t* dy, uint8_t* textureNo, uint8_t* textureX)
+void RayCasterFixed::LookupHeight(uint16_t distance, uint8_t* height, uint16_t* step)
+{
+    if(distance >= 256)
+    {
+        const uint16_t ds = distance >> 3;
+        if(ds >= 256)
+        {
+            *height = LOOKUP8(g_farHeight, 255) - 1;
+            *step   = LOOKUP16(g_farStep, 255);
+        }
+        *height = LOOKUP8(g_farHeight, ds);
+        *step   = LOOKUP16(g_farStep, ds);
+    }
+    else
+    {
+        *height = LOOKUP8(g_nearHeight, distance);
+        *step   = LOOKUP16(g_nearStep, distance);
+    }
+}
+
+void RayCasterFixed::CalculateDistance(
+    uint16_t rayX, uint16_t rayY, uint16_t rayA, int16_t* deltaX, int16_t* deltaY, uint8_t* textureNo, uint8_t* textureX)
 {
     register int8_t  tileStepX;
     register int8_t  tileStepY;
-    register int16_t xIntercept = rx;
-    register int16_t yIntercept = ry;
+    register int16_t interceptX = rayX;
+    register int16_t interceptY = rayY;
 
-    uint8_t x   = rx >> 8;
-    uint8_t y   = ry >> 8;
-    uint8_t qtr = _ra >> 8;
-    uint8_t qra = _ra % 256;
-    uint8_t _sx = rx % 256;
-    uint8_t _sy = ry % 256;
-    int16_t hx;
-    int16_t hy;
+    const uint8_t quarter = rayA >> 8;
+    const uint8_t angle   = rayA % 256;
+    const uint8_t offsetX = rayX % 256;
+    const uint8_t offsetY = rayY % 256;
 
-    if(qra == 0)
+    uint8_t tileX = rayX >> 8;
+    uint8_t tileY = rayY >> 8;
+    int16_t hitX;
+    int16_t hitY;
+
+    if(angle == 0)
     {
-        switch(qtr % 2)
+        switch(quarter % 2)
         {
         case 0:
             tileStepX = 0;
-            tileStepY = qtr == 0 ? 1 : -1;
+            tileStepY = quarter == 0 ? 1 : -1;
             if(tileStepY == 1)
             {
-                yIntercept -= 256;
+                interceptY -= 256;
             }
             for(;;)
             {
-                y += tileStepY;
-                if(IsWall(x, y, x, 0))
+                tileY += tileStepY;
+                if(IsWall(tileX, tileY))
                 {
-                    goto hithoriz;
+                    goto HorizontalHit;
                 }
             }
             break;
         case 1:
             tileStepY = 0;
-            tileStepX = qtr == 1 ? 1 : -1;
+            tileStepX = quarter == 1 ? 1 : -1;
             if(tileStepX == 1)
             {
-                xIntercept -= 256;
+                interceptX -= 256;
             }
             for(;;)
             {
-                x += tileStepX;
-                if(IsWall(x, y, 0, y))
+                tileX += tileStepX;
+                if(IsWall(tileX, tileY))
                 {
-                    goto hitvert;
+                    goto VerticalHit;
                 }
             }
             break;
@@ -148,181 +146,181 @@ void RayCasterFixed::Distance(uint16_t rx, uint16_t ry, uint16_t _ra, int16_t* d
     }
     else
     {
-        int16_t xStep;
-        int16_t yStep;
+        int16_t stepX;
+        int16_t stepY;
 
-        switch(qtr)
+        switch(quarter)
         {
         case 0:
         case 1:
             tileStepX = 1;
-            yIntercept += MulTan(_sx, 1, qtr, qra, _cotan);
-            xIntercept -= 256;
-            xStep = AbsTan(qtr, qra, _tan);
+            interceptY += MulTan(offsetX, true, quarter, angle, g_cotan);
+            interceptX -= 256;
+            stepX = AbsTan(quarter, angle, g_tan);
             break;
         case 2:
         case 3:
             tileStepX = -1;
-            yIntercept -= MulTan(_sx, 0, qtr, qra, _cotan);
-            xStep = -AbsTan(qtr, qra, _tan);
+            interceptY -= MulTan(offsetX, false, quarter, angle, g_cotan);
+            stepX = -AbsTan(quarter, angle, g_tan);
             break;
         }
 
-        switch(qtr)
+        switch(quarter)
         {
         case 0:
         case 3:
             tileStepY = 1;
-            xIntercept += MulTan(_sy, 1, qtr, qra, _tan);
-            yIntercept -= 256;
-            yStep = AbsTan(qtr, qra, _cotan);
+            interceptX += MulTan(offsetY, true, quarter, angle, g_tan);
+            interceptY -= 256;
+            stepY = AbsTan(quarter, angle, g_cotan);
             break;
         case 1:
         case 2:
             tileStepY = -1;
-            xIntercept -= MulTan(_sy, 0, qtr, qra, _tan);
-            yStep = -AbsTan(qtr, qra, _cotan);
+            interceptX -= MulTan(offsetY, false, quarter, angle, g_tan);
+            stepY = -AbsTan(quarter, angle, g_cotan);
             break;
         }
 
         for(;;)
         {
-            while((tileStepY == 1 && (yIntercept >> 8 < y)) || (tileStepY == -1 && (yIntercept >> 8 >= y)))
+            while((tileStepY == 1 && (interceptY >> 8 < tileY)) || (tileStepY == -1 && (interceptY >> 8 >= tileY)))
             {
-                x += tileStepX;
-                if(IsWall(x, y, 0, yIntercept % 256))
+                tileX += tileStepX;
+                if(IsWall(tileX, tileY))
                 {
-                    goto hitvert;
+                    goto VerticalHit;
                 }
-                yIntercept += yStep;
+                interceptY += stepY;
             }
-            while((tileStepX == 1 && (xIntercept >> 8 < x)) || (tileStepX == -1 && (xIntercept >> 8 >= x)))
+            while((tileStepX == 1 && (interceptX >> 8 < tileX)) || (tileStepX == -1 && (interceptX >> 8 >= tileX)))
             {
-                y += tileStepY;
-                if(IsWall(x, y, xIntercept % 256, 0))
+                tileY += tileStepY;
+                if(IsWall(tileX, tileY))
                 {
-                    goto hithoriz;
+                    goto HorizontalHit;
                 }
-                xIntercept += xStep;
+                interceptX += stepX;
             }
         }
     }
 
-hithoriz:
-    hx         = xIntercept + (tileStepX == 1 ? 256 : 0);
-    hy         = (y << 8) + (tileStepY == -1 ? 256 : 0);
+HorizontalHit:
+    hitX       = interceptX + (tileStepX == 1 ? 256 : 0);
+    hitY       = (tileY << 8) + (tileStepY == -1 ? 256 : 0);
     *textureNo = 0;
-    *textureX  = xIntercept & 0xFF;
-    goto wallhit;
+    *textureX  = interceptX & 0xFF;
+    goto WallHit;
 
-hitvert:
-    hx         = (x << 8) + (tileStepX == -1 ? 256 : 0);
-    hy         = yIntercept + (tileStepY == 1 ? 256 : 0);
+VerticalHit:
+    hitX       = (tileX << 8) + (tileStepX == -1 ? 256 : 0);
+    hitY       = interceptY + (tileStepY == 1 ? 256 : 0);
     *textureNo = 1;
-    *textureX  = yIntercept & 0xFF;
-    goto wallhit;
+    *textureX  = interceptY & 0xFF;
+    goto WallHit;
 
-wallhit:
-    *dx = hx - rx;
-    *dy = hy - ry;
+WallHit:
+    *deltaX = hitX - rayX;
+    *deltaY = hitY - rayY;
 }
 
-// (px, py) is 8 box coordinate bits, 8 inside coordinate bits
-// (pa) is full circle as 1024
+// (playerX, playerY) is 8 box coordinate bits, 8 inside coordinate bits
+// (playerA) is full circle as 1024
 void RayCasterFixed::Trace(
     uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
-    uint16_t _ra = static_cast<uint16_t>(_pa + LOOKUP16(_da, screenX));
+    uint16_t rayAngle = static_cast<uint16_t>(_playerA + LOOKUP16(g_deltaAngle, screenX));
 
     // neutralize artefacts around edges
-    switch(_ra % 256)
+    switch(rayAngle % 256)
     {
     case 1:
     case 254:
-        _ra--;
+        rayAngle--;
         break;
     case 2:
     case 255:
-        _ra++;
+        rayAngle++;
         break;
     }
-    _ra %= 1024;
+    rayAngle %= 1024;
 
-    int16_t dx;
-    int16_t dy;
-    Distance(_px, _py, _ra, &dx, &dy, textureNo, textureX);
+    int16_t deltaX;
+    int16_t deltaY;
+    CalculateDistance(_playerX, _playerY, rayAngle, &deltaX, &deltaY, textureNo, textureX);
 
-    // d = dy * cos(pa) + dx * sin(pa)
-    int16_t d = 0;
-    if(_pa == 0)
+    // distance = deltaY * cos(playerA) + deltaX * sin(playerA)
+    int16_t distance = 0;
+    if(_playerA == 0)
     {
-        d += dy;
+        distance += deltaY;
     }
-    else if(_pa == 512)
+    else if(_playerA == 512)
     {
-        d -= dy;
+        distance -= deltaY;
     }
     else
-        switch(_qtr)
+        switch(_viewQuarter)
         {
         case 0:
-            d += MulS(LOOKUP8(_cos, _qa), dy);
+            distance += MulS(LOOKUP8(g_cos, _viewAngle), deltaY);
             break;
         case 1:
-            d -= MulS(LOOKUP8(_cos, INVERT(_qa)), dy);
+            distance -= MulS(LOOKUP8(g_cos, INVERT(_viewAngle)), deltaY);
             break;
         case 2:
-            d -= MulS(LOOKUP8(_cos, _qa), dy);
+            distance -= MulS(LOOKUP8(g_cos, _viewAngle), deltaY);
             break;
         case 3:
-            d += MulS(LOOKUP8(_cos, INVERT(_qa)), dy);
+            distance += MulS(LOOKUP8(g_cos, INVERT(_viewAngle)), deltaY);
             break;
         }
 
-    if(_pa == 256)
+    if(_playerA == 256)
     {
-        d += dx;
+        distance += deltaX;
     }
-    else if(_pa == 768)
+    else if(_playerA == 768)
     {
-        d -= dx;
+        distance -= deltaX;
     }
     else
-        switch(_qtr)
+        switch(_viewQuarter)
         {
         case 0:
-            d += MulS(LOOKUP8(_sin, _qa), dx);
+            distance += MulS(LOOKUP8(g_sin, _viewAngle), deltaX);
             break;
         case 1:
-            d += MulS(LOOKUP8(_sin, INVERT(_qa)), dx);
+            distance += MulS(LOOKUP8(g_sin, INVERT(_viewAngle)), deltaX);
             break;
         case 2:
-            d -= MulS(LOOKUP8(_sin, _qa), dx);
+            distance -= MulS(LOOKUP8(g_sin, _viewAngle), deltaX);
             break;
         case 3:
-            d -= MulS(LOOKUP8(_sin, INVERT(_qa)), dx);
+            distance -= MulS(LOOKUP8(g_sin, INVERT(_viewAngle)), deltaX);
             break;
         }
-    if(d >= MIN_DIST)
+    if(distance >= MIN_DIST)
     {
         *textureY = 0;
-        Height((d - MIN_DIST) >> 2, screenY, textureStep);
+        LookupHeight((distance - MIN_DIST) >> 2, screenY, textureStep);
     }
     else
     {
         *screenY     = SCREEN_HEIGHT >> 1;
-        *textureY    = LOOKUP16(_shorto, d);
-        *textureStep = LOOKUP16(_shorts, d);
+        *textureY    = LOOKUP16(g_overflowOffset, distance);
+        *textureStep = LOOKUP16(g_overflowStep, distance);
     }
 }
 
 void RayCasterFixed::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 {
-    _qtr = playerA >> 8;
-    _qa  = playerA % 256;
-    _px  = playerX;
-    _py  = playerY;
-    _pa  = playerA;
+    _viewQuarter = playerA >> 8;
+    _viewAngle   = playerA % 256;
+    _playerX     = playerX;
+    _playerY     = playerY;
+    _playerA     = playerA;
 }
 
 RayCasterFixed::RayCasterFixed() : RayCaster() {}

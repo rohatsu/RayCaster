@@ -73,10 +73,11 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -145,7 +146,7 @@
     <ClCompile Include="RayCasterFloat.cpp" />
     <ClCompile Include="RayCasterPrecalculator.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Program.cpp" />
+    <ClCompile Include="main_x86.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />

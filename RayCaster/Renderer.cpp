@@ -4,24 +4,25 @@
 #include "Renderer.h"
 #include "RayCasterData.h"
 
-void Renderer::TraceFrame(Game* g, unsigned char* fb)
+void Renderer::TraceFrame(Game* g, uint32_t* fb)
 {
-    _rc->Start(static_cast<uint16_t>(g->px * 256.0f),
-               static_cast<uint16_t>(g->py * 256.0f),
-               static_cast<int16_t>(g->pa / (2.0f * M_PI) * 1024.0f));
+    _rc->Start(static_cast<uint16_t>(g->playerX * 256.0f),
+               static_cast<uint16_t>(g->playerY * 256.0f),
+               static_cast<int16_t>(g->playerA / (2.0f * M_PI) * 1024.0f));
 
     for(int x = 0; x < SCREEN_WIDTH; x++)
     {
-        uint8_t        sso;
-        uint8_t        tc;
-        uint8_t        tn;
-        uint16_t       tso;
-        uint16_t       tst;
-        unsigned char* lb = fb + x;
+        uint8_t   sso;
+        uint8_t   tc;
+        uint8_t   tn;
+        uint16_t  tso;
+        uint16_t  tst;
+        uint32_t* lb = fb + x;
 
         _rc->Trace(x, &sso, &tn, &tc, &tso, &tst);
 
-        int16_t ws = HORIZON_HEIGHT - sso;
+        const auto tx = static_cast<int>(tc >> 2);
+        int16_t    ws = HORIZON_HEIGHT - sso;
         if(ws < 0)
         {
             ws  = 0;
@@ -32,7 +33,7 @@ void Renderer::TraceFrame(Game* g, unsigned char* fb)
 
         for(int y = 0; y < ws; y++)
         {
-            *lb = 96 + (HORIZON_HEIGHT - y);
+            *lb = GetARGB(96 + (HORIZON_HEIGHT - y));
             lb += SCREEN_WIDTH;
         }
 
@@ -40,8 +41,7 @@ void Renderer::TraceFrame(Game* g, unsigned char* fb)
         {
             // paint texture pixel
             auto ty = static_cast<int>(to >> 10);
-            auto tx = static_cast<int>(tc >> 2);
-            auto tv = _tex256[(ty << 6) + tx];
+            auto tv = g_texture8[(ty << 6) + tx];
 
             to += ts;
 
@@ -50,13 +50,13 @@ void Renderer::TraceFrame(Game* g, unsigned char* fb)
                 // dark wall
                 tv >>= 1;
             }
-            *lb = tv;
+            *lb = GetARGB(tv);
             lb += SCREEN_WIDTH;
         }
 
         for(int y = 0; y < ws; y++)
         {
-            *lb = 96 + (HORIZON_HEIGHT - (ws - y));
+            *lb = GetARGB(96 + (HORIZON_HEIGHT - (ws - y)));
             lb += SCREEN_WIDTH;
         }
     }

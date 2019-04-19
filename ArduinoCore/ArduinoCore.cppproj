@@ -272,12 +272,6 @@
     <Compile Include="include\libraries\SPI\SPI.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="include\monaco_font.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="include\SDCardBlockRead.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="include\ST7735R_TFT.h">
       <SubType>compile</SubType>
     </Compile>

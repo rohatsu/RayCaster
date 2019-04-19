@@ -10,8 +10,8 @@
 #define SCREEN_WIDTH (uint16_t)160
 #define SCREEN_HEIGHT (uint16_t)128
 #define LOOKUP_TBL PROGMEM
-#define LOOKUP8(tbl, offset) pgm_read_byte_near(tbl + offset)
-#define LOOKUP16(tbl, offset) pgm_read_word_near(tbl + offset)
+#define LOOKUP8(tbl, offset) pgm_read_byte_near((tbl) + (offset))
+#define LOOKUP16(tbl, offset) pgm_read_word_near((tbl) + (offset))
 
 #else
 
@@ -33,6 +33,8 @@
 #define INV_FACTOR_INT ((uint16_t)(SCREEN_WIDTH * 80))
 #define MIN_DIST (int)((160 * ((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT)))
 #define HORIZON_HEIGHT (SCREEN_HEIGHT / 2)
+#define INVERT(x) (uint8_t)((x ^ 255) + 1)
+#define ABS(x) (x < 0 ? -x : x)
 
 class RayCaster
 {

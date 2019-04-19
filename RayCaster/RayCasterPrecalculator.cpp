@@ -36,13 +36,13 @@ void RayCasterPrecalculator::Precalculate()
     // replace precalculated lookup tables with these results if you change any constants
     for(int i = 0; i < 256; i++)
     {
-        _tan[i]   = static_cast<uint16_t>((256.0f * tan(i * M_PI_2 / 256.0f)));
-        _cotan[i] = static_cast<uint16_t>((256.0f / tan(i * M_PI_2 / 256.0f)));
+        g_tan[i]   = static_cast<uint16_t>((256.0f * tan(i * M_PI_2 / 256.0f)));
+        g_cotan[i] = static_cast<uint16_t>((256.0f / tan(i * M_PI_2 / 256.0f)));
     }
     for(int i = 0; i < 256; i++)
     {
-        _sin[i] = static_cast<uint8_t>(256.0f * sin(i / 1024.0f * 2 * M_PI));
-        _cos[i] = static_cast<uint8_t>(256.0f * cos(i / 1024.0f * 2 * M_PI));
+        g_sin[i] = static_cast<uint8_t>(256.0f * sin(i / 1024.0f * 2 * M_PI));
+        g_cos[i] = static_cast<uint8_t>(256.0f * cos(i / 1024.0f * 2 * M_PI));
     }
     for(int i = 0; i < SCREEN_WIDTH; i++)
     {
@@ -51,68 +51,68 @@ void RayCasterPrecalculator::Precalculate()
         {
             da += 1024;
         }
-        _da[i] = static_cast<uint16_t>(da);
+        g_deltaAngle[i] = static_cast<uint16_t>(da);
     }
     for(int i = 0; i < 256; i++)
     {
-        _neard[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 2) + MIN_DIST) >> 2)) >> 2);
-        _fard[i]  = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 5) + MIN_DIST) >> 5)) >> 5);
+        g_nearHeight[i] = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 2) + MIN_DIST) >> 2)) >> 2);
+        g_farHeight[i]  = static_cast<uint8_t>((INV_FACTOR_INT / (((i << 5) + MIN_DIST) >> 5)) >> 5);
     }
     for(int i = 0; i < 256; i++)
     {
         auto txn = ((INV_FACTOR_INT / (((i * 4.0f) + MIN_DIST) / 4.0f)) / 4.0f) * 2.0f;
         if(txn != 0)
         {
-            _nears[i] = (256 / txn) * 256;
+            g_nearStep[i] = (256 / txn) * 256;
         }
         auto txf = ((INV_FACTOR_INT / (((i * 32.0f) + MIN_DIST) / 32.0f)) / 32.0f) * 2.0f;
         if(txf != 0)
         {
-            _fars[i] = (256 / txf) * 256;
+            g_farStep[i] = (256 / txf) * 256;
         }
     }
     for(int i = 1; i < 256; i++)
     {
         auto txs   = ((INV_FACTOR_INT / (float)(i / 2.0f)));
         auto ino   = (txs - SCREEN_HEIGHT) / 2;
-        _shorts[i] = (256 / txs) * 256;
-        _shorto[i] = ino * (256 / txs) * 256;
+        g_overflowStep[i] = (256 / txs) * 256;
+        g_overflowOffset[i] = ino * (256 / txs) * 256;
     }
 
     std::ostringstream dump;
 
-    dump << "const uint16_t LOOKUP_TBL _tan[256] = ";
-    DumpLookupTable(dump, _tan, 256);
+    dump << "const uint16_t LOOKUP_TBL g_tan[256] = ";
+    DumpLookupTable(dump, g_tan, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _cotan[256] = ";
-    DumpLookupTable(dump, _cotan, 256);
+    dump << "const uint16_t LOOKUP_TBL g_cotan[256] = ";
+    DumpLookupTable(dump, g_cotan, 256);
 
-    dump << "const uint8_t LOOKUP_TBL _sin[256] = ";
-    DumpLookupTable(dump, _sin, 256);
+    dump << "const uint8_t LOOKUP_TBL g_sin[256] = ";
+    DumpLookupTable(dump, g_sin, 256);
 
-    dump << "const uint8_t LOOKUP_TBL _cos[256] = ";
-    DumpLookupTable(dump, _cos, 256);
+    dump << "const uint8_t LOOKUP_TBL g_cos[256] = ";
+    DumpLookupTable(dump, g_cos, 256);
 
-    dump << "const uint8_t LOOKUP_TBL _neard[256] = ";
-    DumpLookupTable(dump, _neard, 256);
+    dump << "const uint8_t LOOKUP_TBL g_nearHeight[256] = ";
+    DumpLookupTable(dump, g_nearHeight, 256);
 
-    dump << "const uint8_t LOOKUP_TBL _fard[256] = ";
-    DumpLookupTable(dump, _fard, 256);
+    dump << "const uint8_t LOOKUP_TBL g_farHeight[256] = ";
+    DumpLookupTable(dump, g_farHeight, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _nears[256] = ";
-    DumpLookupTable(dump, _nears, 256);
+    dump << "const uint16_t LOOKUP_TBL g_nearStep[256] = ";
+    DumpLookupTable(dump, g_nearStep, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _fars[256] = ";
-    DumpLookupTable(dump, _fars, 256);
+    dump << "const uint16_t LOOKUP_TBL g_farStep[256] = ";
+    DumpLookupTable(dump, g_farStep, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _shorto[256] = ";
-    DumpLookupTable(dump, _shorto, 256);
+    dump << "const uint16_t LOOKUP_TBL g_overflowOffset[256] = ";
+    DumpLookupTable(dump, g_overflowOffset, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _shorts[256] = ";
-    DumpLookupTable(dump, _shorts, 256);
+    dump << "const uint16_t LOOKUP_TBL g_overflowStep[256] = ";
+    DumpLookupTable(dump, g_overflowStep, 256);
 
-    dump << "const uint16_t LOOKUP_TBL _da[SCREEN_WIDTH] = ";
-    DumpLookupTable(dump, _da, SCREEN_WIDTH);
+    dump << "const uint16_t LOOKUP_TBL g_deltaAngle[SCREEN_WIDTH] = ";
+    DumpLookupTable(dump, g_deltaAngle, SCREEN_WIDTH);
 
     std::cout << dump.str() << std::endl;
 #endif // ! HAS_TABLES

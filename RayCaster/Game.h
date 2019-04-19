@@ -4,14 +4,10 @@
 
 class Game
 {
-private:
-    uint8_t* _map;
-
 public:
-    uint8_t* CreateMap();
-    void     Move(int m, int r);
+    void Move(int m, int r, float seconds);
 
-    float px, py, pa;
+    float playerX, playerY, playerA;
 
     Game();
     ~Game();

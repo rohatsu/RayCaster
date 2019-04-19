@@ -5,125 +5,6 @@
 #include "RayCasterFloat.h"
 #include <math.h>
 
-void RayCasterFloat::HitLocation(float sx, float sy, float a, float* hx, float* hy, int* dx, int* dy)
-{
-    // sx == 0..1, sy == 0..1, a == 0..2pi
-
-    if(a <= M_PI_2)
-    {
-        if(sx == 1)
-        {
-            sx  = 0;
-            *dx = 1;
-        }
-        if(sy == 1)
-        {
-            sy  = 0;
-            *dy = 1;
-        }
-        HitLocation1(sx, sy, a, hx, hy);
-    }
-    else if(a <= M_PI)
-    {
-        if(sx == 1)
-        {
-            sx  = 0;
-            *dx = 1;
-        }
-        if(sy == 0)
-        {
-            sy  = 1;
-            *dy = -1;
-        }
-        // flip vertical
-        sy = 1 - sy;
-        a  = M_PI - a;
-        HitLocation1(sx, sy, a, hx, hy);
-        a   = M_PI - a;
-        sy  = 1 - sy;
-        *hy = 1 - *hy;
-    }
-    else if(a <= 3 * M_PI_2)
-    {
-        if(sx == 0)
-        {
-            sx  = 1;
-            *dx = -1;
-        }
-        if(sy == 0)
-        {
-            sy  = 1;
-            *dy = -1;
-        }
-        // flip both
-        sx = 1 - sx;
-        a  = 2 * M_PI - a;
-        sy = 1 - sy;
-        a  = M_PI - a;
-        HitLocation1(sx, sy, a, hx, hy);
-        a   = M_PI - a;
-        sy  = 1 - sy;
-        *hy = 1 - *hy;
-        a   = 2 * M_PI - a;
-        sx  = 1 - sx;
-        *hx = 1 - *hx;
-    }
-    else
-    {
-        if(sx == 0)
-        {
-            sx  = 1;
-            *dx = -1;
-        }
-        if(sy == 1)
-        {
-            sy  = 0;
-            *dy = 1;
-        }
-        // flip horizontal
-        sx = 1 - sx;
-        a  = 2 * M_PI - a;
-        HitLocation1(sx, sy, a, hx, hy);
-        a   = 2 * M_PI - a;
-        sx  = 1 - sx;
-        *hx = 1 - *hx;
-    }
-}
-
-void RayCasterFloat::HitLocation1(float sx, float sy, float a, float* hx, float* hy)
-{
-    if(a == 0)
-    {
-        *hx = sx;
-        *hy = 1;
-        return;
-    }
-    // a is less than pi/2
-    // all other numbers 0..1
-    if(/*a > M_PI_2 ||*/ sx < 0 || sy < 0 || sx > 1 || sy > 1)
-    {
-        throw;
-    }
-
-    // tan(a) = w/h
-    float h = 1.0f - sy;
-    float w = h * tan(a);
-    if(sx + w <= 1.0f)
-    {
-        // hit top
-        *hy = 1;
-        *hx = sx + w;
-    }
-    else
-    {
-        // hit right
-        *hx = 1;
-        w   = 1.0f - sx;
-        h   = w / tan(a);
-        *hy = sy + h;
-    }
-}
-
 bool RayCasterFloat::IsWall(float rx, float ry, float ra)
 {
     float x  = 0;
@@ -138,7 +19,7 @@ bool RayCasterFloat::IsWall(float rx, float ry, float ra)
     {
         return true;
     }
-    return _map[+(ibx >> 3) + (iby << (MAP_XS - 3))] & (1 << (8 - (ibx & 0x7)));
+    return g_map[+(ibx >> 3) + (iby << (MAP_XS - 3))] & (1 << (8 - (ibx & 0x7)));
 }
 
 float RayCasterFloat::Distance(float px, float py, float ra)
@@ -228,17 +109,15 @@ float RayCasterFloat::Distance(float px, float py, float ra)
         }
     }
 
-    float xIntercept = rx + sdx;
-    float yIntercept = ry + sdy;
-
-    float xStep = fabs(tan(ra)) * tileStepX;
-    float yStep = fabs(1 / tan(ra)) * tileStepY;
-
-    bool hitVert       = false;
-    bool hitHoriz      = false;
-    bool somethingDone = false;
-    int  isTop         = 0;
-    int  isRight       = 0;
+    float xIntercept    = rx + sdx;
+    float yIntercept    = ry + sdy;
+    float xStep         = fabs(tan(ra)) * tileStepX;
+    float yStep         = fabs(1 / tan(ra)) * tileStepY;
+    bool  hitVert       = false;
+    bool  hitHoriz      = false;
+    bool  somethingDone = false;
+    int   isTop         = 0;
+    int   isRight       = 0;
 
     do
     {
@@ -249,11 +128,11 @@ float RayCasterFloat::Distance(float px, float py, float ra)
             x += tileStepX;
             if(IsWall(x, yIntercept, ra))
             {
-                hitVert = true;
-                rx      = x + (tileStepX == -1 ? 1 : 0);
-                ry      = yIntercept;
-                _hc     = yIntercept;
-                _hv     = true;
+                hitVert       = true;
+                rx            = x + (tileStepX == -1 ? 1 : 0);
+                ry            = yIntercept;
+                _hitOffset    = yIntercept;
+                _hitDirection = true;
                 break;
             }
             yIntercept += yStep;
@@ -264,11 +143,11 @@ float RayCasterFloat::Distance(float px, float py, float ra)
             y += tileStepY;
             if(IsWall(xIntercept, y, ra))
             {
-                hitHoriz = true;
-                rx       = xIntercept;
-                _hc      = xIntercept;
-                _hv      = 0;
-                ry       = y + (tileStepY == -1 ? 1 : 0);
+                hitHoriz      = true;
+                rx            = xIntercept;
+                _hitOffset    = xIntercept;
+                _hitDirection = 0;
+                ry            = y + (tileStepY == -1 ? 1 : 0);
                 break;
             }
             xIntercept += xStep;
@@ -282,20 +161,18 @@ float RayCasterFloat::Distance(float px, float py, float ra)
 
     float dx = rx - px;
     float dy = ry - py;
-    float d  = sqrt(dx * dx + dy * dy);
-
-    return d;
+    return sqrt(dx * dx + dy * dy);
 }
 
 void RayCasterFloat::Trace(
     uint16_t screenX, uint8_t* screenY, uint8_t* textureNo, uint8_t* textureX, uint16_t* textureY, uint16_t* textureStep)
 {
     float da = ((int16_t)screenX - SCREEN_WIDTH / 2) * M_PI * FOV / (SCREEN_WIDTH * 4);
-    float d2 = Distance(_px, _py, _pa + da);
+    float d2 = Distance(_playerX, _playerY, _playerA + da);
     float ad = d2 * cos(da);
     float dum;
-    *textureX    = (uint8_t)(256.0f * modff(_hc, &dum));
-    *textureNo   = _hv;
+    *textureX    = (uint8_t)(256.0f * modff(_hitOffset, &dum));
+    *textureNo   = _hitDirection;
     *textureY    = 0;
     *textureStep = 0;
     if(ad > 0)
@@ -320,9 +197,9 @@ void RayCasterFloat::Trace(
 
 void RayCasterFloat::Start(uint16_t playerX, uint16_t playerY, int16_t playerA)
 {
-    _px = (playerX / 1024.0f) * 4.0f;
-    _py = (playerY / 1024.0f) * 4.0f;
-    _pa = (playerA / 1024.0f) * 2.0f * M_PI;
+    _playerX = (playerX / 1024.0f) * 4.0f;
+    _playerY = (playerY / 1024.0f) * 4.0f;
+    _playerA = (playerA / 1024.0f) * 2.0f * M_PI;
 }
 
 RayCasterFloat::RayCasterFloat() : RayCaster() {}

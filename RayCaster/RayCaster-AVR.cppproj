@@ -243,7 +243,7 @@
     <Compile Include="RayCaster.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="AVRmain.cpp">
+    <Compile Include="main_AVR.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Content Include="readme.html">

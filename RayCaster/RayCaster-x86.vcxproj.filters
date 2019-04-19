@@ -30,10 +30,10 @@
     <ClCompile Include="RayCasterFloat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Program.cpp">
+    <ClCompile Include="RayCasterPrecalculator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RayCasterPrecalculator.cpp">
+    <ClCompile Include="main_x86.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
