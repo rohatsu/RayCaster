@@ -45,8 +45,18 @@ See [this video](https://www.youtube.com/watch?v=eOCQfxRQ2pY) for basic overview
 For Windows, use the Visual Studio (x86) solution, it will render using SDL and
 you can use arrow keys to move around.
 
-For Arduino, use the Atmel Studio (AVR) solution and an Arduino Uno. You will need to connect
-an ST7735R TFT (160x128) or adjust code for your display. Thanks to Jukka Jylänki
+For Arduino, use the Atmel Studio (AVR) solution and an Arduino Uno. You will need to wire up
+an ST7735R TFT (160x128) per below:
+
+* 5V -> VCC
+* GND -> GND
+* Pin 13 -> SCL
+* Pin 11 -> SDA
+* Pin 10 -> CS
+* Pin 9 -> BS/DC
+* Pin 8 -> RES
+
+Thanks to Jukka Jylänki
 for the [fast TFT library](https://github.com/juj/ST7735R).
 
 You can also try runnning pre-built binaries from [Binaries](Binaries) directory
