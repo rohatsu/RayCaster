@@ -1,7 +1,7 @@
 ## RayCaster
 
 Fast implementation of the raycasting algorithm for
-resource-constraint architectures.
+resource-constrained architectures.
 
 ### Features
 
@@ -56,7 +56,7 @@ an ST7735R TFT (160x128) per below:
 * Pin 9 -> BS/DC
 * Pin 8 -> RES
 
-Thanks to Jukka Jyl‰nki
+Thanks to Jukka Jyl√§nki
 for the [fast TFT library](https://github.com/juj/ST7735R).
 
 You can also try runnning pre-built binaries from [Binaries](Binaries) directory
